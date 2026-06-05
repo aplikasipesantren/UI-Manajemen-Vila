@@ -13,9 +13,13 @@ import ReceiptView from './components/ReceiptView';
 import StatsDashboard from './components/StatsDashboard';
 import BrochureGenerator from './components/BrochureGenerator';
 import BillingConfirmation from './components/BillingConfirmation';
+import Login from './components/Login';
 import { ShieldAlert, RefreshCw, Calendar as CalendarIcon, User, Layers, Clock } from 'lucide-react';
 
 export default function App() {
+  const [adminUser, setAdminUser] = useState<string | null>(() => {
+    return localStorage.getItem('villa_admin_user');
+  });
   const [activeTab, setActiveTab] = useState<'kalender' | 'booking' | 'kuitansi' | 'brosur' | 'konfirmasi'>('kalender');
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
@@ -124,6 +128,24 @@ export default function App() {
     setActiveTab('booking');
   };
 
+  const handleLogout = () => {
+    if (window.confirm('Apakah Anda yakin ingin keluar dari sistem?')) {
+      setAdminUser(null);
+      localStorage.removeItem('villa_admin_user');
+    }
+  };
+
+  if (!adminUser) {
+    return (
+      <Login
+        onLoginSuccess={(name) => {
+          setAdminUser(name);
+          localStorage.setItem('villa_admin_user', name);
+        }}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row antialiased text-gray-800">
       
@@ -139,6 +161,7 @@ export default function App() {
           }
         }}
         onReset={handleResetData}
+        onLogout={handleLogout}
       />
 
       {/* 2. Main Content Layout panel */}
@@ -167,7 +190,7 @@ export default function App() {
           <div className="flex items-center gap-4 bg-white px-4 py-2 rounded-xl shadow-2xs border border-gray-150">
             <div className="text-right">
               <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">LOGGED IN ADMIN</span>
-              <span className="block text-xs font-bold text-gray-700">Irwan Setiawan</span>
+              <span className="block text-xs font-bold text-gray-700">{adminUser || 'Irwan Setiawan'}</span>
             </div>
             <div className="h-8 w-px bg-gray-200"></div>
             <div className="text-right hidden sm:block">

@@ -4,15 +4,16 @@
  */
 
 import React from 'react';
-import { Calendar, FileSignature, Receipt, RefreshCw, Layers, ShieldCheck, HelpCircle, Sparkles, Send } from 'lucide-react';
+import { Calendar, FileSignature, Receipt, RefreshCw, Layers, ShieldCheck, HelpCircle, Sparkles, Send, LogOut } from 'lucide-react';
 
 interface SidebarProps {
   activeTab: 'kalender' | 'booking' | 'kuitansi' | 'brosur' | 'konfirmasi';
   setActiveTab: (tab: 'kalender' | 'booking' | 'kuitansi' | 'brosur' | 'konfirmasi') => void;
   onReset: () => void;
+  onLogout: () => void;
 }
 
-export default function Sidebar({ activeTab, setActiveTab, onReset }: SidebarProps) {
+export default function Sidebar({ activeTab, setActiveTab, onReset, onLogout }: SidebarProps) {
   const menuItems = [
     {
       id: 'kalender' as const,
@@ -110,7 +111,7 @@ export default function Sidebar({ activeTab, setActiveTab, onReset }: SidebarPro
       </nav>
 
       {/* 3. Sidebar Footer actions (System actions & reset states) */}
-      <div className="p-4 border-t border-slate-950/45 space-y-4 text-xs font-medium">
+      <div className="p-4 border-t border-slate-950/45 space-y-3.5 text-xs font-medium">
         <span className="block text-[10px] text-slate-550 font-bold tracking-widest uppercase px-3.5">
           ADMIN ACTIONS
         </span>
@@ -126,13 +127,24 @@ export default function Sidebar({ activeTab, setActiveTab, onReset }: SidebarPro
           Reset Demo Data
         </button>
 
+        {/* Logout action */}
+        <button
+          onClick={onLogout}
+          id="btn-sidebar-logout"
+          className="cursor-pointer w-full px-3.5 py-2.5 bg-red-950/20 hover:bg-red-950/40 border border-red-950/60 hover:border-red-900 text-red-450 hover:text-red-300 rounded-lg flex items-center justify-center gap-2 transition-all font-semibold outline-none"
+          title="Log out of the ledger system"
+        >
+          <LogOut className="w-3.5 h-3.5 text-red-500" />
+          Keluar Sistem
+        </button>
+
         {/* System Ledger verification info */}
         <div className="bg-slate-950/30 p-3 rounded-lg border border-slate-950/10 space-y-1">
           <div className="flex items-center gap-1.5 text-slate-400 text-[10px] uppercase font-bold">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
             OFFLINE DATABASE
           </div>
-          <p className="text-[9px] text-slate-505 leading-relaxed font-light">
+          <p className="text-[9px] text-slate-555 leading-relaxed font-light">
             Sistem berjalan lurus pada browser local. Tiada data terkirim keluar demi privasi & kecepatan penuh.
           </p>
         </div>
