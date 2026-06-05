@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+@theme {
+  --color-indigo-950: #1e1b4b;
+  --color-emerald-990: #022c22;
+}
+
+/* Custom Scrollbar styling for scheduling grid matrix */
+.adaptive-scrollbar::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.adaptive-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 9px;
+}
+.adaptive-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9px;
+}
+.adaptive-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes scaleUp {
+  0% {
+    transform: scale(0.92);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-scale-up {
+  animation: scaleUp 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Pure CSS print overrides */
+@media print {
+  /* Hide every parent, sidebar, control panel, buttons, headers */
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+
+  /* Make sure our target container is visible and occupies full width */
+  #printable-receipt {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 9999999 !important;
+    background: white !important;
+  }
+
+  /* Hide absolutely everything else */
+  #sidebar-menu,
+  #btn-receipt-share,
+  #btn-receipt-print,
+  #btn-receipt-edit,
+  #receipt-select,
+  #main-container-header,
+  #calendar-heading,
+  #btn-copy-wa,
+  #btn-quick-booking,
+  #search-bookings,
+  #booking-success-toast,
+  #booking-error-log,
+  #btn-form-back,
+  #btn-save-booking,
+  #widget-summary,
+  #tabs-container,
+  #btn-cancel-top,
+  label[for="receipt-select"],
+  header,
+  footer,
+  aside,
+  nav,
+  button {
+    display: none !important;
+  }
+}
