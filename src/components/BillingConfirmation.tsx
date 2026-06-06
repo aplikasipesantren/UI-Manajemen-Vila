@@ -4,26 +4,40 @@
  */
 
 import React, { useState } from 'react';
-import { Booking, RoomType } from '../types';
+import { Booking, RoomType, AppSettings } from '../types';
 import { Calendar, Phone, CheckCircle, HelpCircle, Loader2, DollarSign, Send, Landmark, Receipt, Eye, Sparkles, Check, Clipboard } from 'lucide-react';
 
 interface BillingConfirmationProps {
   bookings: Booking[];
   roomTypes: RoomType[];
   onUpdatePaymentStatus: (updatedBooking: Booking) => void;
+  settings?: AppSettings;
 }
 
 export default function BillingConfirmation({
   bookings,
   roomTypes,
   onUpdatePaymentStatus,
+  settings,
 }: BillingConfirmationProps) {
   const [selectedBookingId, setSelectedBookingId] = useState<string>(bookings[0]?.id || '');
-  const [bankName, setBankName] = useState('BCA (Bank Central Asia)');
-  const [bankAccountNumber, setBankAccountNumber] = useState('872-00123-998');
-  const [bankAccountHolder, setBankAccountHolder] = useState('VILLA INDAH HARMONI AGUNG');
+  const [bankName, setBankName] = useState(settings?.bankName || 'BCA (Bank Central Asia)');
+  const [bankAccountNumber, setBankAccountNumber] = useState(settings?.bankNoRek || '872-00123-998');
+  const [bankAccountHolder, setBankAccountHolder] = useState(settings?.bankOwner || (settings?.namaLembaga ? `${settings.namaLembaga.toUpperCase()} REK` : 'VILLA INDAH HARMONI AGUNG'));
   const [copiedText, setCopiedText] = useState(false);
   const [simulatedView, setSimulatedView] = useState<'admin' | 'guest'>('admin');
+
+  React.useEffect(() => {
+    if (settings) {
+      if (settings.bankName) setBankName(settings.bankName);
+      if (settings.bankNoRek) setBankAccountNumber(settings.bankNoRek);
+      if (settings.bankOwner) {
+        setBankAccountHolder(settings.bankOwner);
+      } else if (settings.namaLembaga) {
+        setBankAccountHolder(`${settings.namaLembaga.toUpperCase()} REK`);
+      }
+    }
+  }, [settings]);
 
   const activeBooking = bookings.find((b) => b.id === selectedBookingId) || bookings[0];
 
@@ -47,7 +61,8 @@ export default function BillingConfirmation({
 
   // Generate perfect formatted Indonesian WhatsApp reminder message
   const generateWAConfirmMessage = () => {
-    let msg = `*🏡 KONFIRMASI BILLING & RESERVASI - VILLA INDAH HARMONI*\n\n`;
+    const institutionName = (settings?.namaLembaga || 'VILLA INDAH HARMONI');
+    let msg = `*🏡 KONFIRMASI BILLING & RESERVASI - ${institutionName.toUpperCase()}*\n\n`;
     msg += `Yth. Ibu/Bapak *${activeBooking.guestName}*,\n`;
     msg += `Terima kasih atas rencana liburan Anda bersama kami. Berikut rincian pemesanan & tagihan formal Anda:\n\n`;
     
@@ -73,8 +88,8 @@ export default function BillingConfirmation({
       msg += `Pembayaran Anda telah kami terima penuh. Kuitansi lunas digital dapat Anda ambil saat melangsungkan check-in atau pada tautan portal admin kami.\n\n`;
     }
 
-    msg += `Sampai jumpa di keindahan alam Puncak Villa Indah Harmoni! Damai, sejuk, dan aman selalu.\n`;
-    msg += `Warm regards, *Irwan Setiawan* (Manager Admin Villa Indah Harmoni).`;
+    msg += `Sampai jumpa di keindahan alam ${institutionName}! Damai, sejuk, dan aman selalu.\n`;
+    msg += `Warm regards, *Irwan Setiawan* (Manager Admin ${institutionName}).`;
 
     return msg;
   };

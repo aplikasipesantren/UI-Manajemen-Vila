@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { Booking, RoomType } from '../types';
+import { Booking, RoomType, AppSettings } from '../types';
 import { Printer, Calendar, ShieldCheck, Mail, Phone, MapPin, Sparkles, Receipt, FileSignature, Edit, RefreshCw, Check, Clipboard } from 'lucide-react';
 
 interface ReceiptViewProps {
@@ -13,6 +13,7 @@ interface ReceiptViewProps {
   selectedBookingId: string | null;
   onSelectBooking: (id: string) => void;
   onEditBooking: (booking: Booking) => void;
+  settings?: AppSettings;
 }
 
 // Indonesian "Terbilang" helper function for spelled out rupiah currency
@@ -56,6 +57,7 @@ export default function ReceiptView({
   selectedBookingId,
   onSelectBooking,
   onEditBooking,
+  settings,
 }: ReceiptViewProps) {
   const [copiedLink, setCopiedLink] = useState(false);
 
@@ -172,17 +174,23 @@ export default function ReceiptView({
         {/* Receipt Header */}
         <div className="flex flex-col md:flex-row md:justify-between items-start md:items-center pb-6 border-b-2 border-slate-200/60 gap-4">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="p-1 px-2.5 bg-blue-900 text-white font-serif rounded-lg font-bold text-base tracking-widest">H</span>
-              <h1 className="text-lg font-extrabold text-blue-900 tracking-tight">VILLA INDAH HARMONI</h1>
+            <div className="flex items-center gap-3">
+              {settings?.logoUrl ? (
+                <img src={settings.logoUrl} className="h-12 w-auto object-contain rounded-lg shadow-2xs shrink-0" alt="Logo" />
+              ) : (
+                <span className="p-1 px-2.5 bg-blue-900 text-white font-serif rounded-lg font-bold text-base tracking-widest shrink-0">🏡</span>
+              )}
+              <h1 className="text-lg font-extrabold text-blue-900 tracking-tight uppercase">
+                {settings?.namaLembaga || 'VILLA INDAH HARMONI'}
+              </h1>
             </div>
             <p className="text-[11px] text-gray-500 font-medium flex items-center gap-1 mt-1.5">
-              <MapPin className="w-3.5 h-3.5 text-gray-400" />
-              Kawasan Wisata Puncak, Jl. Raya Ciloto No. 12, Jawa Barat
+              <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+              {settings?.alamat || 'Kawasan Wisata Puncak, Jl. Raya Ciloto No. 12, Jawa Barat'}
             </p>
             <p className="text-[11px] text-gray-400 flex items-center gap-3">
-              <span className="inline-flex items-center gap-0.5"><Phone className="w-3 h-3" /> +62 811-2233-4455</span>
-              <span className="inline-flex items-center gap-0.5"><Mail className="w-3 h-3" /> info@villaindahharmoni.com</span>
+              <span className="inline-flex items-center gap-0.5"><Phone className="w-3 h-3" /> {settings?.kontakPhone || settings?.baileysPhone || '+62 811-2233-4455'}</span>
+              <span className="inline-flex items-center gap-0.5"><Mail className="w-3 h-3" /> info@{(settings?.namaLembaga || 'villa').toLowerCase().replace(/[^a-z0-9]/g, '')}.com</span>
             </p>
           </div>
 

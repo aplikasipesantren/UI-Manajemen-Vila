@@ -27,3 +27,31 @@ export interface Booking {
   notes?: string;
   createdAt: string;
 }
+
+export interface Customer {
+  id: string;
+  name: string;
+  whatsappNumber: string;
+  email?: string;
+  address?: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface AppSettings {
+  logoUrl: string;
+  logoInitials: string;
+  namaLembaga: string;
+  alamat: string;
+  baileysStatus: 'CONNECTED' | 'DISCONNECTED' | 'CONNECTING';
+  baileysPhone: string;
+  baileysSessionName: string;
+  baileysAutoReply: boolean;
+  baileysWebhookUrl: string;
+  baileysIsPaired: boolean;
+  bankOwner?: string;
+  bankNoRek?: string;
+  bankName?: string;
+  kontakPhone?: string;
+}
+

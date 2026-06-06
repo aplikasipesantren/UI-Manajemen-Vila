@@ -4,15 +4,17 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Booking, RoomType } from './types';
+import { Booking, RoomType, Customer, AppSettings } from './types';
 import { ROOM_TYPES, INITIAL_BOOKINGS } from './data';
 import Sidebar from './components/Sidebar';
 import CalendarView from './components/CalendarView';
 import BookingForm from './components/BookingForm';
 import ReceiptView from './components/ReceiptView';
-import StatsDashboard from './components/StatsDashboard';
 import BrochureGenerator from './components/BrochureGenerator';
 import BillingConfirmation from './components/BillingConfirmation';
+import CustomerManagement from './components/CustomerManagement';
+import AppSettingsView from './components/AppSettingsView';
+import TransactionReport from './components/TransactionReport';
 import Login from './components/Login';
 import { ShieldAlert, RefreshCw, Calendar as CalendarIcon, User, Layers, Clock } from 'lucide-react';
 
@@ -20,11 +22,45 @@ export default function App() {
   const [adminUser, setAdminUser] = useState<string | null>(() => {
     return localStorage.getItem('villa_admin_user');
   });
-  const [activeTab, setActiveTab] = useState<'kalender' | 'booking' | 'kuitansi' | 'brosur' | 'konfirmasi'>('kalender');
+  const [activeTab, setActiveTab] = useState<'kalender' | 'booking' | 'kuitansi' | 'brosur' | 'konfirmasi' | 'pelanggan' | 'laporan' | 'setting'>('kalender');
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   const [formEditValues, setFormEditValues] = useState<Partial<Booking> | null>(null);
   const [currentDateTime, setCurrentDateTime] = useState('');
+
+  // Pelanggan list manually loaded & synchronized to localStorage
+  const [customers, setCustomers] = useState<Customer[]>(() => {
+    const raw = localStorage.getItem('villa_customers');
+    if (raw) {
+      try { return JSON.parse(raw); } catch (e) { }
+    }
+    return [];
+  });
+
+  // App Identity and WhatsApp settings
+  const [settings, setSettings] = useState<AppSettings>(() => {
+    const raw = localStorage.getItem('villa_settings');
+    if (raw) {
+      try { return JSON.parse(raw); } catch (e) { }
+    }
+    return {
+      logoUrl: '',
+      logoInitials: 'VIH',
+      namaLembaga: 'Villa Indah Harmoni',
+      alamat: 'Jl. Raya Selecta No. 12, Bumiaji, Kota Batu, Jawa Timur',
+      baileysStatus: 'DISCONNECTED',
+      baileysPhone: '0812-3456-7890',
+      baileysSessionName: 'vih_main_session',
+      baileysAutoReply: false,
+      baileysWebhookUrl: 'http://localhost:3000/api/webhook/baileys',
+      baileysIsPaired: false,
+      bankOwner: 'VILLA INDAH HARMONI AGUNG',
+      bankNoRek: '123-4567-890',
+      bankName: 'BCA (Bank Central Asia)',
+      kontakPhone: '+62 811-2233-4455'
+    };
+  });
+
 
   // 1. Load initial data from localStorage or fallback to data.ts seeds
   useEffect(() => {
@@ -56,6 +92,29 @@ export default function App() {
   const saveBookingsList = (updatedList: Booking[]) => {
     setBookings(updatedList);
     localStorage.setItem('villa_bookings', JSON.stringify(updatedList));
+  };
+
+  const handleSaveCustomer = (customer: Customer) => {
+    const exists = customers.some((c) => c.id === customer.id);
+    let updated: Customer[];
+    if (exists) {
+      updated = customers.map((c) => (c.id === customer.id ? customer : c));
+    } else {
+      updated = [customer, ...customers];
+    }
+    setCustomers(updated);
+    localStorage.setItem('villa_customers', JSON.stringify(updated));
+  };
+
+  const handleDeleteCustomer = (id: string) => {
+    const updated = customers.filter((c) => c.id !== id);
+    setCustomers(updated);
+    localStorage.setItem('villa_customers', JSON.stringify(updated));
+  };
+
+  const handleSaveSettings = (newSettings: AppSettings) => {
+    setSettings(newSettings);
+    localStorage.setItem('villa_settings', JSON.stringify(newSettings));
   };
 
   // 2. Action: Save a Booking (New or Edit)
@@ -162,6 +221,9 @@ export default function App() {
         }}
         onReset={handleResetData}
         onLogout={handleLogout}
+        logoInitials={settings.logoInitials}
+        namaLembaga={settings.namaLembaga}
+        logoUrl={settings.logoUrl}
       />
 
       {/* 2. Main Content Layout panel */}
@@ -171,10 +233,10 @@ export default function App() {
         <header id="main-container-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200/60 pb-5">
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-xs text-blue-900 font-bold uppercase tracking-wider">
-              <span>Sistem Manajemen Villa</span>
+              <span>Sistem Manajemen {settings.namaLembaga}</span>
               <span>/</span>
               <span className="text-gray-400 font-medium">
-                {activeTab === 'kalender' ? 'Kalender Ketersediaan' : activeTab === 'booking' ? 'Formulir Booking' : activeTab === 'kuitansi' ? 'Kuitansi Digital' : activeTab === 'brosur' ? 'Brosur Promosi AI' : 'Konfirmasi Tagihan'}
+                {activeTab === 'kalender' ? 'Kalender Ketersediaan' : activeTab === 'booking' ? 'Formulir Booking' : activeTab === 'kuitansi' ? 'Kuitansi Digital' : activeTab === 'brosur' ? 'Brosur Promosi AI' : activeTab === 'konfirmasi' ? 'Konfirmasi Tagihan' : activeTab === 'pelanggan' ? 'Database Pelanggan' : activeTab === 'laporan' ? 'Laporan Transaksi' : 'Setting Aplikasi'}
               </span>
             </div>
             <h1 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
@@ -202,9 +264,6 @@ export default function App() {
             </div>
           </div>
         </header>
-
-        {/* 3. Top Row Metrics Summary shelf dashboard */}
-        <StatsDashboard bookings={bookings} roomTypes={ROOM_TYPES} />
 
         {/* 4. Active Tab Workspace section views */}
         <div className="flex-1 mt-2">
@@ -242,6 +301,7 @@ export default function App() {
                 selectedBookingId={selectedBookingId}
                 onSelectBooking={setSelectedBookingId}
                 onEditBooking={handleEditBookingClick}
+                settings={settings}
               />
             </div>
           )}
@@ -262,6 +322,37 @@ export default function App() {
                   saveBookingsList(updated);
                   setSelectedBookingId(updatedBooking.id);
                 }}
+                settings={settings}
+              />
+            </div>
+          )}
+
+          {activeTab === 'pelanggan' && (
+            <div className="animate-scale-up">
+              <CustomerManagement
+                bookings={bookings}
+                roomTypes={ROOM_TYPES}
+                customers={customers}
+                onSaveCustomer={handleSaveCustomer}
+                onDeleteCustomer={handleDeleteCustomer}
+              />
+            </div>
+          )}
+
+          {activeTab === 'laporan' && (
+            <div className="animate-scale-up">
+              <TransactionReport
+                bookings={bookings}
+                roomTypes={ROOM_TYPES}
+              />
+            </div>
+          )}
+
+          {activeTab === 'setting' && (
+            <div className="animate-scale-up">
+              <AppSettingsView
+                settings={settings}
+                onSaveSettings={handleSaveSettings}
               />
             </div>
           )}
@@ -269,7 +360,7 @@ export default function App() {
 
         {/* Footer info bar */}
         <footer className="text-center text-[11px] text-gray-450 border-t border-gray-100 pt-5 mt-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>© 2026 Villa Indah Harmoni — Booking Ledger system. Semua data tersimpan di browser Anda (LocalStorage).</p>
+          <p>© 2026 {settings.namaLembaga} — Booking Ledger system. Semua data tersimpan di browser Anda (LocalStorage).</p>
           <div className="flex gap-4">
             <span className="hover:text-blue-900 transition-colors">Syarat Layanan</span>
             <span>•</span>
