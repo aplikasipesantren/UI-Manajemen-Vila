@@ -5,12 +5,20 @@
 
 export type PaymentStatus = 'Lunas' | 'DP' | 'Belum Bayar';
 
+export interface RoomFacility {
+  name: string;
+  icon: string;
+}
+
 export interface RoomType {
   id: string;
   name: string;
-  ratePerNight: number;
+  ratePerNight: number; // Fallback / historical rate
+  rateWeekday?: number; // Price on weekdays (Monday - Friday)
+  rateWeekend?: number; // Price on weekends (Saturday - Sunday)
   capacity: number;
   description: string;
+  facilities?: RoomFacility[];
 }
 
 export interface Booking {
@@ -20,10 +28,14 @@ export interface Booking {
   whatsappNumber: string;
   checkInDate: string; // YYYY-MM-DD
   checkOutDate: string; // YYYY-MM-DD
+  checkInTime?: string; // e.g. "14:00"
+  checkOutTime?: string; // e.g. "12:00"
+  timeZone?: string; // e.g. "WIB", "WITA", "WIT"
   roomId: string; // References RoomType.id
   paymentStatus: PaymentStatus;
   amountPaid: number;
   totalPrice: number;
+  paymentMethod?: string; // e.g. 'Tunai', 'BCA', or other bank names
   notes?: string;
   createdAt: string;
 }
@@ -36,6 +48,13 @@ export interface Customer {
   address?: string;
   notes?: string;
   createdAt: string;
+}
+
+export interface BankAccount {
+  id: string;
+  bankName: string;
+  bankNoRek: string;
+  bankOwner: string;
 }
 
 export interface AppSettings {
@@ -53,5 +72,7 @@ export interface AppSettings {
   bankNoRek?: string;
   bankName?: string;
   kontakPhone?: string;
+  appColor?: string;
+  banks?: BankAccount[];
 }
 

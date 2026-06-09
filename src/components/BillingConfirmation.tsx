@@ -69,7 +69,9 @@ export default function BillingConfirmation({
     msg += `📌 *DATA RESERVASI:*\n`;
     msg += `• No. Invoice: *${activeBooking.invoiceNumber}*\n`;
     msg += `• Tipe Kamar: *${selectedRoomDetails?.name || 'Vip Room'}*\n`;
-    msg += `• Tanggal Menginap: *${activeBooking.checkInDate}* s.d. *${activeBooking.checkOutDate}* (${nightsStayed} Malam)\n\n`;
+    const checkInStr = activeBooking.checkInDate + (activeBooking.checkInTime ? ` (Pkl ${activeBooking.checkInTime} ${activeBooking.timeZone || 'WIB'})` : '');
+    const checkOutStr = activeBooking.checkOutDate + (activeBooking.checkOutTime ? ` (Pkl ${activeBooking.checkOutTime} ${activeBooking.timeZone || 'WIB'})` : '');
+    msg += `• Tanggal Menginap: *${checkInStr}* s.d. *${checkOutStr}* (${nightsStayed} Malam)\n\n`;
 
     msg += `💸 *RINCIAN PENILAIAN BIAYA (LEDGER):*\n`;
     msg += `• Total Tarif Kamar: Rp ${activeBooking.totalPrice.toLocaleString('id-ID')}\n`;
@@ -184,6 +186,33 @@ export default function BillingConfirmation({
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-gray-100 pb-2">
               Pengaturan Mutasi & Informasi Bank
             </h3>
+
+            {/* Quick selector of saved accounts if multiple exist */}
+            {settings?.banks && settings.banks.length > 0 && (
+              <div className="bg-slate-50 border border-slate-150 p-2.5 rounded-xl space-y-1">
+                <label htmlFor="quick-bank-select" className="block text-[9px] uppercase font-black text-blue-900 tracking-wider">
+                  ⚡ PILIH REKENING TERDAFTAR
+                </label>
+                <select
+                  id="quick-bank-select"
+                  onChange={(e) => {
+                    const selected = settings.banks?.find(b => b.id === e.target.value);
+                    if (selected) {
+                      setBankName(selected.bankName);
+                      setBankAccountNumber(selected.bankNoRek);
+                      setBankAccountHolder(selected.bankOwner);
+                    }
+                  }}
+                  className="w-full text-xs px-2.5 py-1.5 border border-blue-150 outline-none rounded-lg bg-white font-bold text-blue-900 focus:border-blue-900 cursor-pointer"
+                >
+                  {settings.banks.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.bankName} ({b.bankNoRek})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Bank Name */}
             <div>

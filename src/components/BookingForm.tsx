@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Booking, RoomType, PaymentStatus } from '../types';
+import { Booking, RoomType, PaymentStatus, BankAccount } from '../types';
 import { Calendar, User, Phone, CheckCircle, Calculator, FileText, RefreshCw, X } from 'lucide-react';
 
 interface BookingFormProps {
@@ -20,20 +20,63 @@ export default function BookingForm({
   onSave,
   onCancel,
 }: BookingFormProps) {
+  // Load active bank list from settings for payment method configuration
+  const [banksList] = useState<BankAccount[]>(() => {
+    const raw = localStorage.getItem('villa_settings');
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed.banks && parsed.banks.length > 0) {
+          return parsed.banks;
+        }
+        if (parsed.bankName) {
+          return [{
+            id: 'bank-1',
+            bankName: parsed.bankName,
+            bankNoRek: parsed.bankNoRek || '',
+            bankOwner: parsed.bankOwner || ''
+          }];
+        }
+      } catch (e) {}
+    }
+    return [
+      {
+        id: 'bank-1',
+        bankName: 'BCA (Bank Central Asia)',
+        bankNoRek: '123-4567-890',
+        bankOwner: 'VILLA INDAH HARMONI AGUNG'
+      },
+      {
+        id: 'bank-2',
+        bankName: 'Bank Mandiri',
+        bankNoRek: '144-00-112233-4',
+        bankOwner: 'VILLA INDAH HARMONI AGUNG'
+      }
+    ];
+  });
+
   // Form States
   const [guestName, setGuestName] = useState('');
   const [whatsappNumber, setWhatsappNumber] = useState('');
   const [checkInDate, setCheckInDate] = useState('2026-06-01');
   const [checkOutDate, setCheckOutDate] = useState('2026-06-02');
+  const [checkInTime, setCheckInTime] = useState('14:00');
+  const [checkOutTime, setCheckOutTime] = useState('12:00');
+  const [timeZone, setTimeZone] = useState('WIB');
   const [roomId, setRoomId] = useState(roomTypes[0]?.id || '');
   const [roomCount, setRoomCount] = useState(1);
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('Belum Bayar');
+  const [paymentMethod, setPaymentMethod] = useState('Tunai');
   const [amountPaid, setAmountPaid] = useState(0);
   const [notes, setNotes] = useState('');
   const [totalPrice, setTotalPrice] = useState(0);
   const [nights, setNights] = useState(1);
   const [errorMessage, setErrorMessage] = useState('');
   const [successToast, setSuccessToast] = useState(false);
+
+  // Weekend and weekday night breakdown states
+  const [weekdayNightsCount, setWeekdayNightsCount] = useState(0);
+  const [weekendNightsCount, setWeekendNightsCount] = useState(0);
 
   // Load initial values if editing or clicking empty cell
   useEffect(() => {
@@ -42,8 +85,16 @@ export default function BookingForm({
       setWhatsappNumber(initialValues.whatsappNumber || '');
       if (initialValues.checkInDate) setCheckInDate(initialValues.checkInDate);
       if (initialValues.checkOutDate) setCheckOutDate(initialValues.checkOutDate);
+      setCheckInTime(initialValues.checkInTime || '14:00');
+      setCheckOutTime(initialValues.checkOutTime || '12:00');
+      setTimeZone(initialValues.timeZone || 'WIB');
       if (initialValues.roomId) setRoomId(initialValues.roomId);
       if (initialValues.paymentStatus) setPaymentStatus(initialValues.paymentStatus);
+      if (initialValues.paymentMethod) {
+        setPaymentMethod(initialValues.paymentMethod);
+      } else {
+        setPaymentMethod('Tunai');
+      }
       if (initialValues.amountPaid !== undefined) setAmountPaid(initialValues.amountPaid);
       if (initialValues.notes !== undefined) setNotes(initialValues.notes || '');
     } else {
@@ -52,9 +103,13 @@ export default function BookingForm({
       setWhatsappNumber('');
       setCheckInDate('2026-06-01');
       setCheckOutDate('2026-06-02');
+      setCheckInTime('14:00');
+      setCheckOutTime('12:00');
+      setTimeZone('WIB');
       setRoomId(roomTypes[0]?.id || '');
       setRoomCount(1);
       setPaymentStatus('Belum Bayar');
+      setPaymentMethod('Tunai');
       setAmountPaid(0);
       setNotes('');
     }
@@ -77,7 +132,28 @@ export default function BookingForm({
       const calculatedNights = diffDays > 0 ? diffDays : 1;
       setNights(calculatedNights);
       
-      const calculatedTotal = calculatedNights * selectedRoom.ratePerNight * roomCount;
+      let weekdayCount = 0;
+      let weekendCount = 0;
+      let tempDate = new Date(start);
+      
+      for (let i = 0; i < calculatedNights; i++) {
+        const day = tempDate.getDay();
+        const isWeekend = day === 0 || day === 6; // Sunday (0) or Saturday (6)
+        if (isWeekend) {
+          weekendCount++;
+        } else {
+          weekdayCount++;
+        }
+        tempDate.setDate(tempDate.getDate() + 1);
+      }
+      
+      setWeekdayNightsCount(weekdayCount);
+      setWeekendNightsCount(weekendCount);
+
+      const wdRate = selectedRoom.rateWeekday ?? selectedRoom.ratePerNight;
+      const weRate = selectedRoom.rateWeekend ?? selectedRoom.ratePerNight;
+      const calculatedTotal = ((weekdayCount * wdRate) + (weekendCount * weRate)) * roomCount;
+      
       setTotalPrice(calculatedTotal);
 
       // Auto-set amountPaid if status is Lunas or Belum Bayar
@@ -128,10 +204,14 @@ export default function BookingForm({
       whatsappNumber: whatsappNumber.trim(),
       checkInDate,
       checkOutDate,
+      checkInTime,
+      checkOutTime,
+      timeZone,
       roomId,
       paymentStatus,
       amountPaid: paymentStatus === 'Lunas' ? totalPrice : paymentStatus === 'Belum Bayar' ? 0 : amountPaid,
       totalPrice,
+      paymentMethod,
       notes: notes.trim(),
       createdAt: initialValues?.createdAt || new Date().toISOString(),
     };
@@ -272,7 +352,7 @@ export default function BookingForm({
               >
                 {roomTypes.map((room) => (
                   <option key={room.id} value={room.id}>
-                    {room.name} — Rp {room.ratePerNight.toLocaleString('id-ID')} / malam
+                    {room.name} — Wd: Rp {(room.rateWeekday ?? room.ratePerNight).toLocaleString('id-ID')} | We: Rp {(room.rateWeekend ?? room.ratePerNight).toLocaleString('id-ID')} /malam
                   </option>
                 ))}
               </select>
@@ -283,44 +363,81 @@ export default function BookingForm({
               )}
             </div>
 
-            {/* Check-in & Check-out Date */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Check-in & Check-out Date & Time */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="checkin-date" className="block text-xs font-bold text-gray-700 mb-1.5">
-                  Tanggal Check-in <span className="text-rose-500">*</span>
+                  Check-in <span className="text-[10px] text-gray-400 font-semibold">(Tanggal & Jam)</span> <span className="text-rose-500">*</span>
                 </label>
-                <div className="relative">
-                  <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <input
+                      id="checkin-date"
+                      type="date"
+                      required
+                      min="2026-06-01"
+                      max="2026-06-30"
+                      value={checkInDate}
+                      onChange={(e) => setCheckInDate(e.target.value)}
+                      className="w-full text-xs pl-8 pr-2 py-2.5 border border-gray-200 outline-none rounded-xl focus:border-blue-900 focus:ring-1 focus:ring-blue-900/10 bg-white"
+                    />
+                  </div>
                   <input
-                    id="checkin-date"
-                    type="date"
-                    required
-                    min="2026-06-01"
-                    max="2026-06-30"
-                    value={checkInDate}
-                    onChange={(e) => setCheckInDate(e.target.value)}
-                    className="w-full text-xs pl-8 pr-2 py-2.5 border border-gray-200 outline-none rounded-xl focus:border-blue-900 focus:ring-1 focus:ring-blue-900/10 bg-white"
+                    type="time"
+                    value={checkInTime}
+                    onChange={(e) => setCheckInTime(e.target.value)}
+                    className="w-24 text-xs px-2 py-2.5 border border-gray-200 outline-none rounded-xl focus:border-blue-900 focus:ring-1 focus:ring-blue-900/10 bg-white font-mono font-bold"
                   />
                 </div>
               </div>
 
               <div>
                 <label htmlFor="checkout-date" className="block text-xs font-bold text-gray-700 mb-1.5">
-                  Tanggal Check-out <span className="text-rose-500">*</span>
+                  Check-out <span className="text-[10px] text-gray-400 font-semibold">(Tanggal & Jam)</span> <span className="text-rose-500">*</span>
                 </label>
-                <div className="relative">
-                  <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <input
+                      id="checkout-date"
+                      type="date"
+                      required
+                      min="2026-06-02"
+                      max="2026-07-05"
+                      value={checkOutDate}
+                      onChange={(e) => setCheckOutDate(e.target.value)}
+                      className="w-full text-xs pl-8 pr-2 py-2.5 border border-gray-200 outline-none rounded-xl focus:border-blue-900 focus:ring-1 focus:ring-blue-900/10 bg-white"
+                    />
+                  </div>
                   <input
-                    id="checkout-date"
-                    type="date"
-                    required
-                    min="2026-06-02"
-                    max="2026-07-05"
-                    value={checkOutDate}
-                    onChange={(e) => setCheckOutDate(e.target.value)}
-                    className="w-full text-xs pl-8 pr-2 py-2.5 border border-gray-200 outline-none rounded-xl focus:border-blue-900 focus:ring-1 focus:ring-blue-900/10 bg-white"
+                    type="time"
+                    value={checkOutTime}
+                    onChange={(e) => setCheckOutTime(e.target.value)}
+                    className="w-24 text-xs px-2 py-2.5 border border-gray-200 outline-none rounded-xl focus:border-blue-900 focus:ring-1 focus:ring-blue-900/10 bg-white font-mono font-bold"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Zona Waktu Selector inside regular form */}
+            <div className="bg-slate-50 border border-gray-150 p-2.5 rounded-xl flex items-center justify-between text-xs">
+              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Zona Waktu Kuitansi:</span>
+              <div className="flex gap-2 bg-gray-200/50 p-1 rounded-lg">
+                {['WIB', 'WITA', 'WIT'].map((tz) => (
+                  <button
+                    key={tz}
+                    type="button"
+                    onClick={() => setTimeZone(tz)}
+                    className={`px-3 py-1 text-[10px] font-black rounded-md transition-colors ${
+                      timeZone === tz
+                        ? 'bg-blue-900 text-white shadow-3xs'
+                        : 'bg-white text-gray-600 hover:text-black border border-gray-150 shadow-3xs'
+                    }`}
+                  >
+                    {tz}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -350,54 +467,90 @@ export default function BookingForm({
             Aspek Keuangan & Nominal Pembayaran
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
             {/* Total price indicator (Readonly) */}
-            <div className="bg-white p-3.5 rounded-xl border border-gray-150 shadow-2xs">
-              <span className="block text-[10px] uppercase font-bold text-gray-400">Total Tagihan</span>
-              <span id="label-total-price" className="block text-lg font-bold text-gray-900 mt-1 font-mono">
-                Rp {totalPrice.toLocaleString('id-ID')}
-              </span>
-              <span className="block text-[10px] text-gray-400 mt-0.5">
-                Kalkulasi: {nights} Malam × Rp {selectedRoom?.ratePerNight.toLocaleString('id-ID')} {roomCount > 1 ? `× ${roomCount} Unit` : ''}
+            <div className="bg-white p-3.5 rounded-xl border border-gray-150 shadow-2xs flex flex-col justify-between">
+              <div>
+                <span className="block text-[10px] uppercase font-bold text-gray-400">Total Tagihan</span>
+                <span id="label-total-price" className="block text-base font-bold text-gray-900 mt-1 font-mono">
+                  Rp {totalPrice.toLocaleString('id-ID')}
+                </span>
+              </div>
+              <span className="block text-[9px] text-gray-400 mt-1 leading-normal">
+                Detail: {weekdayNightsCount > 0 ? `${weekdayNightsCount}x Weekday (Rp ${(selectedRoom?.rateWeekday ?? selectedRoom?.ratePerNight ?? 0).toLocaleString('id-ID')})` : ''} {weekendNightsCount > 0 ? `${weekdayNightsCount > 0 ? ' + ' : ''}${weekendNightsCount}x Weekend (Rp ${(selectedRoom?.rateWeekend ?? selectedRoom?.ratePerNight ?? 0).toLocaleString('id-ID')})` : ''} {roomCount > 1 ? `× ${roomCount} Unit` : ''}
               </span>
             </div>
 
             {/* Status Pembayaran */}
-            <div className="bg-white p-3 border border-gray-150 rounded-xl shadow-2xs">
-              <label htmlFor="payment-status" className="block text-[10px] uppercase font-bold text-gray-550 mb-1 block">
-                Status Pembayaran <span className="text-rose-500">*</span>
-              </label>
-              <select
-                id="payment-status"
-                value={paymentStatus}
-                onChange={(e) => setPaymentStatus(e.target.value as PaymentStatus)}
-                className="w-full text-xs px-2.5 py-1.5 border border-gray-200 outline-none rounded-lg focus:border-blue-905 bg-slate-50/50 font-bold"
-              >
-                <option value="Lunas">🟢 Lunas (Lunas Selesai)</option>
-                <option value="DP">🟡 Uang Muka (DP / Panjar)</option>
-                <option value="Belum Bayar">🔴 Belum Bayar (Reservasi)</option>
-              </select>
+            <div className="bg-white p-3 border border-gray-150 rounded-xl shadow-2xs flex flex-col justify-between">
+              <div>
+                <label htmlFor="payment-status" className="block text-[10px] uppercase font-bold text-gray-550 mb-1 block">
+                  Status Pembayaran <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  id="payment-status"
+                  value={paymentStatus}
+                  onChange={(e) => setPaymentStatus(e.target.value as PaymentStatus)}
+                  className="w-full text-xs px-2.5 py-1.5 border border-gray-200 outline-none rounded-lg focus:border-blue-905 bg-slate-50/50 font-bold"
+                >
+                  <option value="Lunas">🟢 Lunas (Lunas Selesai)</option>
+                  <option value="DP">🟡 Uang Muka (DP / Panjar)</option>
+                  <option value="Belum Bayar">🔴 Belum Bayar (Reservasi)</option>
+                </select>
+              </div>
+              <span className="text-[9px] text-gray-400 block mt-1">
+                Pilih kondisi penagihan saat ini.
+              </span>
+            </div>
+
+            {/* Metode Pembayaran */}
+            <div className="bg-white p-3 border border-gray-150 rounded-xl shadow-2xs flex flex-col justify-between">
+              <div>
+                <label htmlFor="payment-method" className="block text-[10px] uppercase font-bold text-gray-550 mb-1 block">
+                  Metode Pembayaran <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  id="payment-method"
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  className="w-full text-xs px-2.5 py-1.5 border border-gray-200 outline-none rounded-lg focus:border-blue-905 bg-slate-50/50 font-bold text-slate-800"
+                >
+                  <option value="Tunai">💵 Tunai (Cash)</option>
+                  {banksList.map((b) => (
+                    <option key={b.id} value={`Transfer ${b.bankName}`}>
+                      🏦 {b.bankName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <span className="text-[9px] text-gray-400 block mt-1">
+                {paymentMethod === 'Tunai' 
+                  ? 'Bayar tunai langsung.' 
+                  : `Rekening: ${banksList.find(b => `Transfer ${b.bankName}` === paymentMethod)?.bankNoRek || 'Transfer Bank'}`}
+              </span>
             </div>
 
             {/* Nominal Terbayar */}
-            <div className="bg-white p-3 border border-gray-150 rounded-xl shadow-2xs">
-              <label htmlFor="amount-paid" className="block text-[10px] uppercase font-bold text-gray-550 mb-1 block">
-                Nominal Terbayar (Rp)
-              </label>
-              <input
-                id="amount-paid"
-                type="number"
-                disabled={paymentStatus === 'Lunas' || paymentStatus === 'Belum Bayar'}
-                value={amountPaid}
-                onChange={(e) => handleAmountPaidChange(parseInt(e.target.value) || 0)}
-                className="w-full text-xs px-2.5 py-1.5 border border-gray-250 outline-none rounded-lg focus:border-blue-900 bg-disabled font-semibold font-mono disabled:bg-slate-105 disabled:text-gray-450"
-              />
+            <div className="bg-white p-3 border border-gray-150 rounded-xl shadow-2xs flex flex-col justify-between">
+              <div>
+                <label htmlFor="amount-paid" className="block text-[10px] uppercase font-bold text-gray-550 mb-1 block">
+                  Nominal Terbayar (Rp)
+                </label>
+                <input
+                  id="amount-paid"
+                  type="number"
+                  disabled={paymentStatus === 'Lunas' || paymentStatus === 'Belum Bayar'}
+                  value={amountPaid}
+                  onChange={(e) => handleAmountPaidChange(parseInt(e.target.value) || 0)}
+                  className="w-full text-xs px-2.5 py-1.5 border border-gray-250 outline-none rounded-lg focus:border-blue-900 bg-disabled font-semibold font-mono disabled:bg-slate-105 disabled:text-gray-450"
+                />
+              </div>
               <span className="text-[9px] text-gray-400 block mt-1">
                 {paymentStatus === 'Lunas'
                   ? 'Otomatis lunas penuh.'
                   : paymentStatus === 'Belum Bayar'
                   ? 'Otomatis Rp 0.'
-                  : 'Ketik nominal DP yang diterima.'}
+                  : 'Ketik nominal DP.'}
               </span>
             </div>
           </div>

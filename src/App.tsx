@@ -15,14 +15,124 @@ import BillingConfirmation from './components/BillingConfirmation';
 import CustomerManagement from './components/CustomerManagement';
 import AppSettingsView from './components/AppSettingsView';
 import TransactionReport from './components/TransactionReport';
+import RoomManagement from './components/RoomManagement';
+import DashboardView from './components/DashboardView';
 import Login from './components/Login';
+import POSKasirView from './components/POSKasirView';
 import { ShieldAlert, RefreshCw, Calendar as CalendarIcon, User, Layers, Clock } from 'lucide-react';
+
+const THEME_COLORS: Record<string, Record<string, string>> = {
+  blue: {
+    '50': '#eff6ff',
+    '100': '#dbeafe',
+    '150': '#cbdfec',
+    '200': '#bfdbfe',
+    '300': '#93c5fd',
+    '400': '#60a5fa',
+    '600': '#2563eb',
+    '800': '#1e40af',
+    '850': '#172554',
+    '900': '#1e3a8a',
+    '950': '#172554',
+  },
+  emerald: {
+    '50': '#f0fdf4',
+    '105': '#f0fdf4', // customized opacity fallbacks
+    '100': '#dcfce7',
+    '150': '#d1fbf0',
+    '200': '#bbf7d0',
+    '300': '#86efac',
+    '400': '#4ade80',
+    '600': '#16a34a',
+    '800': '#15803d',
+    '850': '#166534',
+    '900': '#064e3b',
+    '950': '#022c22',
+  },
+  violet: {
+    '50': '#f5f3ff',
+    '105': '#f5f3ff',
+    '100': '#ede9fe',
+    '150': '#eceafb',
+    '200': '#ddd6fe',
+    '300': '#c084fc',
+    '400': '#a855f7',
+    '600': '#7c3aed',
+    '800': '#5b21b6',
+    '850': '#4c1d95',
+    '900': '#3b0764',
+    '950': '#2e1065',
+  },
+  rose: {
+    '50': '#fff1f2',
+    '105': '#fff1f2',
+    '100': '#ffe4e6',
+    '150': '#fde2e4',
+    '200': '#fecdd3',
+    '300': '#fda4af',
+    '400': '#fb7185',
+    '600': '#e11d48',
+    '800': '#9f1239',
+    '850': '#881337',
+    '900': '#4c0519',
+    '950': '#27000b',
+  },
+  amber: {
+    '50': '#fffbeb',
+    '105': '#fffbeb',
+    '100': '#fef3c7',
+    '150': '#fdf0cd',
+    '200': '#fde68a',
+    '300': '#fcd34d',
+    '400': '#fbbf24',
+    '600': '#d97706',
+    '800': '#b45309',
+    '850': '#78350f',
+    '900': '#a16207',
+    '950': '#451a03',
+  },
+  teal: {
+    '50': '#f0fdfa',
+    '105': '#f0fdfa',
+    '100': '#ccfbf1',
+    '150': '#d5f5f0',
+    '200': '#99f6e4',
+    '300': '#5eead4',
+    '400': '#2dd4bf',
+    '600': '#0d9488',
+    '800': '#115e59',
+    '850': '#134e4a',
+    '900': '#0f766e',
+    '950': '#042f2e',
+  },
+  slate: {
+    '50': '#f8fafc',
+    '105': '#f8fafc',
+    '100': '#f1f5f9',
+    '150': '#e2e8f0',
+    '200': '#cbd5e1',
+    '300': '#94a3b8',
+    '400': '#64748b',
+    '600': '#475569',
+    '800': '#334155',
+    '850': '#1e293b',
+    '900': '#1e293b',
+    '950': '#0f172a',
+  }
+};
 
 export default function App() {
   const [adminUser, setAdminUser] = useState<string | null>(() => {
     return localStorage.getItem('villa_admin_user');
   });
-  const [activeTab, setActiveTab] = useState<'kalender' | 'booking' | 'kuitansi' | 'brosur' | 'konfirmasi' | 'pelanggan' | 'laporan' | 'setting'>('kalender');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'kalender' | 'booking' | 'kuitansi' | 'brosur' | 'konfirmasi' | 'pelanggan' | 'laporan' | 'setting' | 'kamar' | 'kasir'>('dashboard');
+  const [roomTypes, setRoomTypes] = useState<RoomType[]>(() => {
+    const raw = localStorage.getItem('villa_room_types');
+    if (raw) {
+      try { return JSON.parse(raw); } catch (e) { }
+    }
+    return ROOM_TYPES;
+  });
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   const [formEditValues, setFormEditValues] = useState<Partial<Booking> | null>(null);
@@ -57,7 +167,21 @@ export default function App() {
       bankOwner: 'VILLA INDAH HARMONI AGUNG',
       bankNoRek: '123-4567-890',
       bankName: 'BCA (Bank Central Asia)',
-      kontakPhone: '+62 811-2233-4455'
+      kontakPhone: '+62 811-2233-4455',
+      banks: [
+        {
+          id: 'bank-1',
+          bankName: 'BCA (Bank Central Asia)',
+          bankNoRek: '123-4567-890',
+          bankOwner: 'VILLA INDAH HARMONI AGUNG'
+        },
+        {
+          id: 'bank-2',
+          bankName: 'Bank Mandiri',
+          bankNoRek: '144-00-112233-4',
+          bankOwner: 'VILLA INDAH HARMONI AGUNG'
+        }
+      ]
     };
   });
 
@@ -88,6 +212,15 @@ export default function App() {
     setCurrentDateTime(formattedDate);
   }, []);
 
+  // Sync and override CSS variables dynamically based on App Color settings
+  useEffect(() => {
+    const selectedColor = settings.appColor || 'blue';
+    const theme = THEME_COLORS[selectedColor] || THEME_COLORS.blue;
+    for (const [shade, hex] of Object.entries(theme)) {
+      document.documentElement.style.setProperty(`--color-blue-${shade}`, hex);
+    }
+  }, [settings.appColor]);
+
   // Save changes to state & localStorage
   const saveBookingsList = (updatedList: Booking[]) => {
     setBookings(updatedList);
@@ -117,6 +250,24 @@ export default function App() {
     localStorage.setItem('villa_settings', JSON.stringify(newSettings));
   };
 
+  const handleSaveRoomType = (savedRoom: RoomType) => {
+    const exists = roomTypes.some((r) => r.id === savedRoom.id);
+    let updated: RoomType[];
+    if (exists) {
+      updated = roomTypes.map((r) => (r.id === savedRoom.id ? savedRoom : r));
+    } else {
+      updated = [...roomTypes, savedRoom];
+    }
+    setRoomTypes(updated);
+    localStorage.setItem('villa_room_types', JSON.stringify(updated));
+  };
+
+  const handleDeleteRoomType = (id: string) => {
+    const updated = roomTypes.filter((r) => r.id !== id);
+    setRoomTypes(updated);
+    localStorage.setItem('villa_room_types', JSON.stringify(updated));
+  };
+
   // 2. Action: Save a Booking (New or Edit)
   const handleSaveBooking = (savedBooking: Booking) => {
     const exists = bookings.some((b) => b.id === savedBooking.id);
@@ -144,6 +295,8 @@ export default function App() {
   const handleResetData = () => {
     if (window.confirm('Apakah Anda yakin ingin mengatur ulang database ke data demo pabrik? Semua pesanan baru Anda akan terhapus.')) {
       saveBookingsList(INITIAL_BOOKINGS);
+      setRoomTypes(ROOM_TYPES);
+      localStorage.setItem('villa_room_types', JSON.stringify(ROOM_TYPES));
       setSelectedBookingId(INITIAL_BOOKINGS[0].id);
       setFormEditValues(null);
       setActiveTab('kalender');
@@ -236,7 +389,7 @@ export default function App() {
               <span>Sistem Manajemen {settings.namaLembaga}</span>
               <span>/</span>
               <span className="text-gray-400 font-medium">
-                {activeTab === 'kalender' ? 'Kalender Ketersediaan' : activeTab === 'booking' ? 'Formulir Booking' : activeTab === 'kuitansi' ? 'Kuitansi Digital' : activeTab === 'brosur' ? 'Brosur Promosi AI' : activeTab === 'konfirmasi' ? 'Konfirmasi Tagihan' : activeTab === 'pelanggan' ? 'Database Pelanggan' : activeTab === 'laporan' ? 'Laporan Transaksi' : 'Setting Aplikasi'}
+                {activeTab === 'kalender' ? 'Kalender Ketersediaan' : activeTab === 'booking' ? 'Formulir Booking' : activeTab === 'kasir' ? 'POS Kasir Booking' : activeTab === 'kuitansi' ? 'Kuitansi Digital' : activeTab === 'brosur' ? 'Brosur Promosi AI' : activeTab === 'konfirmasi' ? 'Konfirmasi Tagihan' : activeTab === 'pelanggan' ? 'Database Pelanggan' : activeTab === 'laporan' ? 'Laporan Transaksi' : 'Setting Aplikasi'}
               </span>
             </div>
             <h1 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
@@ -267,10 +420,22 @@ export default function App() {
 
         {/* 4. Active Tab Workspace section views */}
         <div className="flex-1 mt-2">
+          {activeTab === 'dashboard' && (
+            <div className="animate-scale-up">
+              <DashboardView
+                bookings={bookings}
+                roomTypes={roomTypes}
+                onNavigateToTab={(tab) => {
+                  setActiveTab(tab);
+                }}
+              />
+            </div>
+          )}
+
           {activeTab === 'kalender' && (
             <div className="animate-scale-up">
               <CalendarView
-                roomTypes={ROOM_TYPES}
+                roomTypes={roomTypes}
                 bookings={bookings}
                 onSelectCell={handleSelectCell}
                 onSelectBooking={handleSelectBooking}
@@ -282,7 +447,7 @@ export default function App() {
           {activeTab === 'booking' && (
             <div className="animate-scale-up">
               <BookingForm
-                roomTypes={ROOM_TYPES}
+                roomTypes={roomTypes}
                 initialValues={formEditValues}
                 onSave={handleSaveBooking}
                 onCancel={() => {
@@ -293,11 +458,23 @@ export default function App() {
             </div>
           )}
 
+          {activeTab === 'kasir' && (
+            <div className="animate-scale-up">
+              <POSKasirView
+                roomTypes={roomTypes}
+                bookings={bookings}
+                customers={customers}
+                onSaveBooking={handleSaveBooking}
+                onSaveCustomer={handleSaveCustomer}
+              />
+            </div>
+          )}
+
           {activeTab === 'kuitansi' && (
             <div className="animate-scale-up">
               <ReceiptView
                 bookings={bookings}
-                roomTypes={ROOM_TYPES}
+                roomTypes={roomTypes}
                 selectedBookingId={selectedBookingId}
                 onSelectBooking={setSelectedBookingId}
                 onEditBooking={handleEditBookingClick}
@@ -308,7 +485,7 @@ export default function App() {
 
           {activeTab === 'brosur' && (
             <div className="animate-scale-up">
-              <BrochureGenerator roomTypes={ROOM_TYPES} />
+              <BrochureGenerator roomTypes={roomTypes} />
             </div>
           )}
 
@@ -316,7 +493,7 @@ export default function App() {
             <div className="animate-scale-up">
               <BillingConfirmation
                 bookings={bookings}
-                roomTypes={ROOM_TYPES}
+                roomTypes={roomTypes}
                 onUpdatePaymentStatus={(updatedBooking) => {
                   const updated = bookings.map((b) => (b.id === updatedBooking.id ? updatedBooking : b));
                   saveBookingsList(updated);
@@ -331,10 +508,21 @@ export default function App() {
             <div className="animate-scale-up">
               <CustomerManagement
                 bookings={bookings}
-                roomTypes={ROOM_TYPES}
+                roomTypes={roomTypes}
                 customers={customers}
                 onSaveCustomer={handleSaveCustomer}
                 onDeleteCustomer={handleDeleteCustomer}
+              />
+            </div>
+          )}
+
+          {activeTab === 'kamar' && (
+            <div className="animate-scale-up">
+              <RoomManagement
+                roomTypes={roomTypes}
+                bookings={bookings}
+                onSaveRoomType={handleSaveRoomType}
+                onDeleteRoomType={handleDeleteRoomType}
               />
             </div>
           )}
@@ -343,7 +531,7 @@ export default function App() {
             <div className="animate-scale-up">
               <TransactionReport
                 bookings={bookings}
-                roomTypes={ROOM_TYPES}
+                roomTypes={roomTypes}
               />
             </div>
           )}

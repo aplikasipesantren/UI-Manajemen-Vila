@@ -19,12 +19,15 @@ import {
   BarChart, 
   Settings,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Home,
+  LayoutDashboard,
+  ShoppingCart
 } from 'lucide-react';
 
 interface SidebarProps {
-  activeTab: 'kalender' | 'booking' | 'kuitansi' | 'brosur' | 'konfirmasi' | 'pelanggan' | 'laporan' | 'setting';
-  setActiveTab: (tab: 'kalender' | 'booking' | 'kuitansi' | 'brosur' | 'konfirmasi' | 'pelanggan' | 'laporan' | 'setting') => void;
+  activeTab: 'dashboard' | 'kalender' | 'booking' | 'kuitansi' | 'brosur' | 'konfirmasi' | 'pelanggan' | 'kamar' | 'laporan' | 'setting' | 'kasir';
+  setActiveTab: (tab: 'dashboard' | 'kalender' | 'booking' | 'kuitansi' | 'brosur' | 'konfirmasi' | 'pelanggan' | 'kamar' | 'laporan' | 'setting' | 'kasir') => void;
   onReset: () => void;
   onLogout: () => void;
   logoInitials?: string;
@@ -50,11 +53,8 @@ export default function Sidebar({
     if (saved !== null) {
       return saved === 'true';
     }
-    // Default to minimized on tablet sizes (under 1024px but above mobile 768px)
-    if (typeof window !== 'undefined') {
-      return window.innerWidth >= 768 && window.innerWidth < 1024;
-    }
-    return false;
+    // Default to minimized when first opened on all device sizes
+    return true;
   });
 
   // Save changes to localStorage
@@ -71,12 +71,12 @@ export default function Sidebar({
         // Auto-minimize on tablet as default
         setIsMinimized(true);
       } else if (window.innerWidth >= 1024) {
-        // Auto-expand on large screens unless user explicitly has set it minimized before
+        // Respect saved state or default to minimized state if not yet configured
         const saved = localStorage.getItem('sidebar_minimized');
         if (saved !== null) {
           setIsMinimized(saved === 'true');
         } else {
-          setIsMinimized(false);
+          setIsMinimized(true);
         }
       }
     };
@@ -86,6 +86,12 @@ export default function Sidebar({
   }, []);
 
   const menuItems = [
+    {
+      id: 'dashboard' as const,
+      label: 'Dashboard Analitik',
+      sublabel: 'Grafik bulanan & okupansi',
+      icon: LayoutDashboard,
+    },
     {
       id: 'kalender' as const,
       label: 'Kalender Ketersediaan',
@@ -97,6 +103,12 @@ export default function Sidebar({
       label: 'Registrasi Booking',
       sublabel: 'Penerimaan pesanan baru',
       icon: FileSignature,
+    },
+    {
+      id: 'kasir' as const,
+      label: 'POS Kasir Booking',
+      sublabel: 'Pencatatan kasir cepat',
+      icon: ShoppingCart,
     },
     {
       id: 'kuitansi' as const,
@@ -123,6 +135,12 @@ export default function Sidebar({
       icon: Users,
     },
     {
+      id: 'kamar' as const,
+      label: 'Kelola Kamar/Villa',
+      sublabel: 'Unit, tarif & kapasitas',
+      icon: Home,
+    },
+    {
       id: 'laporan' as const,
       label: 'Laporan Transaksi',
       sublabel: 'Jurnal, omset & grafik',
@@ -139,12 +157,12 @@ export default function Sidebar({
   return (
     <aside
       id="sidebar-menu"
-      className={`w-full bg-slate-900 text-slate-300 flex flex-col border-r border-slate-950 flex-shrink-0 transition-all duration-300 ease-in-out ${
+      className={`w-full bg-blue-950 text-slate-200 flex flex-col border-r border-blue-950 flex-shrink-0 transition-all duration-300 ease-in-out ${
         isMinimized ? 'md:w-20' : 'md:w-64'
       }`}
     >
       {/* 1. Header & Brand Logo section */}
-      <div className={`p-4 md:p-5 border-b border-slate-950/60 flex items-center justify-between transition-all duration-300 ${
+      <div className={`p-4 md:p-5 border-b border-blue-900/30 flex items-center justify-between transition-all duration-300 ${
         isMinimized ? 'md:justify-center md:flex-col gap-3' : 'gap-2'
       }`}>
         <div className="flex items-center justify-center min-w-0">
@@ -171,7 +189,7 @@ export default function Sidebar({
         <button
           type="button"
           onClick={handleToggleMinimize}
-          className="cursor-pointer hidden md:flex items-center justify-center p-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-450 hover:text-white border border-slate-700/50 shadow-inner transition-colors outline-none"
+          className="cursor-pointer hidden md:flex items-center justify-center p-2 rounded-xl bg-blue-900/50 hover:bg-blue-900/80 text-blue-200 hover:text-white border border-blue-800/30 shadow-inner transition-colors outline-none"
           title={isMinimized ? "Perluas Sidebar" : "Sembunyikan Sidebar"}
         >
           {isMinimized ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -181,12 +199,12 @@ export default function Sidebar({
       {/* 2. Interactive Menu Tabs */}
       <nav className={`flex-1 p-3 space-y-2`}>
         {!isMinimized ? (
-          <span className="block text-[10px] text-slate-550 font-bold tracking-widest uppercase px-3.5 mb-2.5 animate-fade-in">
+          <span className="block text-[10px] text-blue-200/50 font-bold tracking-widest uppercase px-3.5 mb-2.5 animate-fade-in">
             MENU UTAMA
           </span>
         ) : (
           <div className="h-4 flex items-center justify-center">
-            <div className="w-6 h-px bg-slate-800"></div>
+            <div className="w-6 h-px bg-blue-900/30"></div>
           </div>
         )}
 
@@ -203,15 +221,15 @@ export default function Sidebar({
                 isMinimized ? 'p-2 justify-center' : 'px-3.5 py-2.5 gap-3'
               } ${
                 isActive
-                  ? 'bg-blue-900 text-white font-bold shadow-md shadow-blue-900/10'
-                  : 'hover:bg-slate-800 text-slate-400 font-medium hover:text-slate-200'
+                  ? 'bg-blue-900 text-white font-bold shadow-md shadow-blue-950/40'
+                  : 'hover:bg-blue-900/40 text-blue-200/70 font-medium hover:text-white'
               }`}
             >
               <div
                 className={`rounded-lg transition-colors shrink-0 ${
                   isMinimized ? 'p-2.5' : 'p-1.5'
                 } ${
-                  isActive ? 'bg-blue-800 text-blue-200' : 'bg-slate-800 text-slate-500 group-hover:text-slate-300'
+                  isActive ? 'bg-blue-850 text-blue-200' : 'bg-blue-900/30 text-blue-300/60 group-hover:text-blue-200'
                 }`}
               >
                 <Icon className="w-4 h-4 shrink-0" />
@@ -222,7 +240,7 @@ export default function Sidebar({
                   <span className="block text-xs truncate tracking-wide font-bold">{item.label}</span>
                   <span
                     className={`block text-[9px] truncate transition-colors ${
-                      isActive ? 'text-blue-200 font-normal' : 'text-slate-600 font-light'
+                      isActive ? 'text-blue-200 font-normal' : 'text-blue-300/40 font-light'
                     }`}
                   >
                     {item.sublabel}
@@ -240,9 +258,9 @@ export default function Sidebar({
       </nav>
 
       {/* 3. Sidebar Footer actions (System actions & reset states) */}
-      <div className={`p-3 border-t border-slate-950/45 space-y-2.5 text-xs font-medium ${isMinimized ? 'flex flex-col items-center' : ''}`}>
+      <div className={`p-3 border-t border-blue-900/30 space-y-2.5 text-xs font-medium ${isMinimized ? 'flex flex-col items-center' : ''}`}>
         {!isMinimized && (
-          <span className="block text-[10px] text-slate-555 font-bold tracking-widest uppercase px-3.5 animate-fade-in">
+          <span className="block text-[10px] text-blue-200/50 font-bold tracking-widest uppercase px-3.5 animate-fade-in">
             KONTROL UTAMA
           </span>
         )}
@@ -251,12 +269,12 @@ export default function Sidebar({
         <button
           onClick={onReset}
           id="btn-sidebar-reset"
-          className={`cursor-pointer bg-slate-850 hover:bg-slate-800 border border-slate-950/80 hover:text-slate-200 text-slate-400 rounded-xl flex items-center justify-center transition-all font-bold outline-none ${
+          className={`cursor-pointer bg-blue-900/20 hover:bg-blue-900/50 border border-blue-900/40 hover:text-white text-blue-200/80 rounded-xl flex items-center justify-center transition-all font-bold outline-none ${
             isMinimized ? 'p-3 w-11 h-11' : 'w-full px-3.5 py-2.5 gap-2'
           }`}
           title="Reset Demo Data"
         >
-          <RefreshCw className="w-4 h-4 shrink-0 text-slate-500" />
+          <RefreshCw className="w-4 h-4 shrink-0 text-blue-300/60" />
           {!isMinimized && <span className="truncate">Reset Demo Data</span>}
         </button>
 
@@ -275,12 +293,12 @@ export default function Sidebar({
 
         {/* System Ledger verification info (Hide when minimized to maintain clean space) */}
         {!isMinimized && (
-          <div className="bg-slate-950/30 p-3 rounded-xl border border-slate-950/10 space-y-1 animate-fade-in">
-            <div className="flex items-center gap-1.5 text-slate-400 text-[10px] uppercase font-bold">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+          <div className="bg-blue-900/10 p-3 rounded-xl border border-blue-900/20 space-y-1 animate-fade-in">
+            <div className="flex items-center gap-1.5 text-blue-200/80 text-[10px] uppercase font-bold">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
               OFFLINE DATABASE
             </div>
-            <p className="text-[9px] text-slate-550 leading-relaxed font-normal">
+            <p className="text-[9px] text-blue-300/50 leading-relaxed font-normal">
               Sistem beroperasi mandiri pada browser lokal tanpa sinkronisasi internet eksternal.
             </p>
           </div>

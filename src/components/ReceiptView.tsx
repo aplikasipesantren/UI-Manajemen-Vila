@@ -72,13 +72,16 @@ export default function ReceiptView({
 
   const handleCopyReceiptUrl = () => {
     if (!activeBooking) return;
+    const checkInStr = activeBooking.checkInDate + (activeBooking.checkInTime ? ` (${activeBooking.checkInTime} ${activeBooking.timeZone || 'WIB'})` : '');
+    const checkOutStr = activeBooking.checkOutDate + (activeBooking.checkOutTime ? ` (${activeBooking.checkOutTime} ${activeBooking.timeZone || 'WIB'})` : '');
+    
     const shareText = `*KUITANSI DIGITAL - VILLA INDAH HARMONI*\n` +
       `No. Kuitansi: ${activeBooking.invoiceNumber}\n` +
       `Tamu: ${activeBooking.guestName}\n` +
       `Total Tagihan: Rp ${activeBooking.totalPrice.toLocaleString('id-ID')}\n` +
       `Status: ${activeBooking.paymentStatus} (Terbayar: Rp ${activeBooking.amountPaid.toLocaleString('id-ID')})\n` +
       `Tipe Kamar: ${roomTypes.find(r => r.id === activeBooking.roomId)?.name || 'Kamar Villa'}\n` +
-      `Periode: ${activeBooking.checkInDate} s/d ${activeBooking.checkOutDate}\n\n` +
+      `Periode: ${checkInStr} s/d ${checkOutStr}\n\n` +
       `Terima kasih telah mempercayakan akomodasi Anda bersama kami!`;
     
     navigator.clipboard.writeText(shareText);
@@ -229,7 +232,7 @@ export default function ReceiptView({
           <div className="grid grid-cols-1 sm:grid-cols-4 items-baseline pb-3 border-b border-gray-100 gap-2">
             <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Untuk Pembayaran</span>
             <span className="text-xs text-gray-700 sm:col-span-3 leading-relaxed">
-              : Penyewaan kamar <span className="font-semibold text-gray-900">{selectedRoom ? selectedRoom.name : 'VIP Room'}</span> sebanyak <span className="font-semibold text-gray-900">1 Unit</span> selama <span className="font-semibold text-gray-900">{nightsStayed} malam</span>. Periode menginap tanggal <span className="font-mono text-gray-800 bg-slate-100 px-1 py-0.5 rounded">{activeBooking.checkInDate}</span> s.d. <span className="font-mono text-gray-800 bg-slate-100 px-1 py-0.5 rounded">{activeBooking.checkOutDate}</span>.
+              : Penyewaan kamar <span className="font-semibold text-gray-900">{selectedRoom ? selectedRoom.name : 'VIP Room'}</span> sebanyak <span className="font-semibold text-gray-900">1 Unit</span> selama <span className="font-semibold text-gray-900">{nightsStayed} malam</span>. Periode menginap tanggal <span className="font-mono text-gray-850 bg-slate-100 px-1.5 py-0.5 rounded">{activeBooking.checkInDate}{activeBooking.checkInTime ? ` (Pkl ${activeBooking.checkInTime} ${activeBooking.timeZone || 'WIB'})` : ''}</span> s.d. <span className="font-mono text-gray-850 bg-slate-100 px-1.5 py-0.5 rounded">{activeBooking.checkOutDate}{activeBooking.checkOutTime ? ` (Pkl ${activeBooking.checkOutTime} ${activeBooking.timeZone || 'WIB'})` : ''}</span>.
               {activeBooking.notes && (
                 <span className="block mt-1 text-[11px] text-gray-500 italic bg-amber-50/50 p-1.5 rounded border border-amber-150">
                   Catatan: {activeBooking.notes}

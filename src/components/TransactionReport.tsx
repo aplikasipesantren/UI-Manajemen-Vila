@@ -89,23 +89,70 @@ export default function TransactionReport({ bookings, roomTypes }: TransactionRe
     return Object.values(data);
   }, [bookings, roomTypes]);
 
-  // Get trend data (chronological list of bookings)
+  // Get trend data (chronological list of bookings - last 31 days)
   const lineChartPoints = useMemo(() => {
-    const sorted = [...bookings].sort((a, b) => a.checkInDate.localeCompare(b.checkInDate));
-    // Max 8 points to keep chart clean
-    const sliced = sorted.slice(-8);
-    const maxVal = Math.max(...sliced.map(p => p.totalPrice), 100000);
+    const dates: string[] = [];
+    let latestDate = new Date("2026-06-06");
     
-    return sliced.map((p, index) => {
-      const x = 50 + (index * 80);
-      // scale y to fit 140pxheight (from y=20 to y=160), flipped vertically
-      const y = 160 - ((p.totalPrice / maxVal) * 120);
+    // Find the latest check-in date or anchor to today
+    bookings.forEach(b => {
+      const d = new Date(b.checkInDate);
+      if (!isNaN(d.getTime()) && d > latestDate) {
+        latestDate = d;
+      }
+    });
+
+    for (let i = 30; i >= 0; i--) {
+      const d = new Date(latestDate);
+      d.setDate(latestDate.getDate() - i);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      const dateStr = `${yyyy}-${mm}-${dd}`;
+      dates.push(dateStr);
+    }
+
+    // Map each date to revenue
+    const dailyData: Record<string, { total: number; count: number; nameStr: string }> = {};
+    dates.forEach(dateStr => {
+      dailyData[dateStr] = { total: 0, count: 0, nameStr: '' };
+    });
+
+    bookings.forEach(b => {
+      if (dailyData[b.checkInDate]) {
+        dailyData[b.checkInDate].total += b.totalPrice;
+        dailyData[b.checkInDate].count += 1;
+        if (dailyData[b.checkInDate].nameStr) {
+          dailyData[b.checkInDate].nameStr += `, ${b.guestName}`;
+        } else {
+          dailyData[b.checkInDate].nameStr = b.guestName;
+        }
+      }
+    });
+
+    const maxVal = Math.max(...dates.map(d => dailyData[d].total), 1000000);
+
+    const marginL = 50;
+    const marginR = 30;
+    const chartW = 540; // 620 - 50 - 30 = 540
+    const step = chartW / 30;
+
+    return dates.map((dateStr, index) => {
+      const x = marginL + (index * step);
+      const dayInfo = dailyData[dateStr];
+      const y = 140 - ((dayInfo.total / maxVal) * 110);
+      
+      const parts = dateStr.split('-');
+      const dayLabel = `${parts[2]}/${parts[1]}`; // DD/MM
+
       return {
         x,
         y,
-        name: p.guestName,
-        value: p.totalPrice,
-        invoice: p.invoiceNumber
+        dateStr,
+        label: dayLabel,
+        value: dayInfo.total,
+        count: dayInfo.count,
+        name: dayInfo.nameStr || 'Tidak ada booking',
       };
     });
   }, [bookings]);
@@ -183,7 +230,7 @@ export default function TransactionReport({ bookings, roomTypes }: TransactionRe
                 </div>
               ) : (
                 <div className="w-full flex justify-center items-center h-full">
-                  <svg className="w-full max-w-lg h-36" viewBox="0 0 620 180">
+                  <svg className="w-full h-36" viewBox="0 0 620 180">
                     <defs>
                       <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="#1e40af" stopOpacity="0.4" />
@@ -198,7 +245,7 @@ export default function TransactionReport({ bookings, roomTypes }: TransactionRe
 
                     {/* Area polygon beneath graph */}
                     <polygon
-                      points={`30,160 ${lineChartPoints.map(p => `${p.x},${p.y}`).join(' ')} ${lineChartPoints[lineChartPoints.length - 1].x},160`}
+                      points={`${lineChartPoints[0].x},160 ${lineChartPoints.map(p => `${p.x},${p.y}`).join(' ')} ${lineChartPoints[lineChartPoints.length - 1].x},160`}
                       fill="url(#areaGrad)"
                     />
 
@@ -216,8 +263,8 @@ export default function TransactionReport({ bookings, roomTypes }: TransactionRe
                         <circle
                           cx={pt.x}
                           cy={pt.y}
-                          r="4.5"
-                          className="fill-blue-900 stroke-amber-400 stroke-[2] hover:r-6 transition-all"
+                          r={pt.value > 0 ? "3.5" : "1.5"}
+                          className="fill-blue-900 stroke-amber-400 stroke-[1.5] hover:r-5 transition-all text-slate-800"
                         />
                         {/* Dynamic Tooltip on Hover inside SVG */}
                         <text
@@ -226,17 +273,19 @@ export default function TransactionReport({ bookings, roomTypes }: TransactionRe
                           textAnchor="middle"
                           className="fill-slate-200 text-[8px] font-mono font-bold bg-slate-950 p-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
                         >
-                          {pt.name} • Rp {(pt.value / 1000).toLocaleString('id-ID')}K
+                          {pt.dateStr} • Rp {pt.value.toLocaleString('id-ID')} ({pt.count} Booking)
                         </text>
-                        {/* Bottom Label under X line */}
-                        <text
-                          x={pt.x}
-                          y="174"
-                          textAnchor="middle"
-                          className="fill-slate-500 text-[8px] font-mono"
-                        >
-                          {pt.invoice.replace('INV-2026', '')}
-                        </text>
+                        {/* Bottom Label under X line (staggered to prevent overlaps) */}
+                        {(idx % 5 === 0 || idx === 30) && (
+                          <text
+                            x={pt.x}
+                            y="174"
+                            textAnchor="middle"
+                            className="fill-slate-400 text-[8px] font-mono font-semibold"
+                          >
+                            {pt.label}
+                          </text>
+                        )}
                       </g>
                     ))}
                   </svg>
@@ -271,7 +320,7 @@ export default function TransactionReport({ bookings, roomTypes }: TransactionRe
           </div>
 
           <div className="bg-slate-950 p-2 rounded-xl text-center text-[9px] text-slate-500 font-bold uppercase tracking-wider border border-slate-850">
-            {activeChartTab === 'pendapatan' ? '▲ SUMBU Y: Estimasi total tagihan rupiah  │  SUMBU X: Kode Sesi Resi Booking' : '🗂 Total kotor sewa terakumulasi per tipe kamar'}
+            {activeChartTab === 'pendapatan' ? '▲ SUMBU Y: Estimasi total tagihan rupiah  │  SUMBU X: Tanggal Laporan (31 Hari Terakhir)' : '🗂 Total kotor sewa terakumulasi per tipe kamar'}
           </div>
         </div>
 

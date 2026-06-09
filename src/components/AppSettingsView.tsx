@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { AppSettings } from '../types';
+import { AppSettings, BankAccount } from '../types';
 import { 
   Building, 
   MapPin, 
@@ -17,10 +17,23 @@ import {
   Landmark, 
   ChevronRight,
   Info,
-  Phone
+  Phone,
+  Plus,
+  Trash2,
+  Edit3
 } from 'lucide-react';
 
 const DEFAULT_LOGO_SVG = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none'><rect width='100' height='100' rx='24' fill='%231e3a8a'/><path d='M25 55 L50 30 L75 55 Z' fill='%2360a5fa'/><rect x='32' y='55' width='36' height='25' fill='%23ffffff'/><rect x='44' y='63' width='12' height='17' fill='%231e3a8a'/><circle cx='50' cy='43' r='5' fill='%23f59e0b'/></svg>";
+
+const COLOR_PRESETS = [
+  { id: 'blue', label: 'Biru Klasik', hex: '#1e3a8a', class: 'bg-blue-900 border-blue-950' },
+  { id: 'emerald', label: 'Hijau Kebun', hex: '#064e3b', class: 'bg-emerald-800 border-emerald-950' },
+  { id: 'violet', label: 'Ungu Harmoni', hex: '#5b21b6', class: 'bg-purple-900 border-purple-950' },
+  { id: 'rose', label: 'Merah Marun', hex: '#9f1239', class: 'bg-rose-900 border-rose-950' },
+  { id: 'amber', label: 'Oranye Senja', hex: '#d97706', class: 'bg-amber-600 border-amber-950' },
+  { id: 'teal', label: 'Teal Tropis', hex: '#0d9488', class: 'bg-teal-700 border-teal-950' },
+  { id: 'slate', label: 'Slate Abu-Abu', hex: '#475569', class: 'bg-slate-700 border-slate-900' },
+];
 
 interface AppSettingsViewProps {
   settings: AppSettings;
@@ -38,11 +51,31 @@ export default function AppSettingsView({ settings: initialSettings, onSaveSetti
   const [namaLembaga, setNamaLembaga] = useState(initialSettings.namaLembaga || 'Villa Indah Harmoni');
   const [alamat, setAlamat] = useState(initialSettings.alamat || 'Jl. Raya Selecta No. 12, Kota Batu, Jawa Timur');
   const [kontakPhone, setKontakPhone] = useState(initialSettings.kontakPhone || '+62 811-2233-4455');
+  const [appColor, setAppColor] = useState(initialSettings.appColor || 'blue');
   
   // Bank Transfer states
   const [bankOwner, setBankOwner] = useState(initialSettings.bankOwner || 'VILLA INDAH HARMONI AGUNG');
   const [bankNoRek, setBankNoRek] = useState(initialSettings.bankNoRek || '123-4567-890');
   const [bankName, setBankName] = useState(initialSettings.bankName || 'BCA (Bank Central Asia)');
+  
+  // Multiple Bank accounts states
+  const [banks, setBanks] = useState<BankAccount[]>(() => {
+    if (initialSettings.banks && initialSettings.banks.length > 0) {
+      return initialSettings.banks;
+    }
+    const defaultBank = {
+      id: 'bank-1',
+      bankName: initialSettings.bankName || 'BCA (Bank Central Asia)',
+      bankNoRek: initialSettings.bankNoRek || '123-4567-890',
+      bankOwner: initialSettings.bankOwner || 'VILLA INDAH HARMONI AGUNG',
+    };
+    return [defaultBank];
+  });
+
+  const [editingBankId, setEditingBankId] = useState<string | null>(null);
+  const [inputBankName, setInputBankName] = useState('');
+  const [inputBankNoRek, setInputBankNoRek] = useState('');
+  const [inputBankOwner, setInputBankOwner] = useState('');
   
   // Baileys WhatsApp Gateway setup state
   const [baileysStatus, setBaileysStatus] = useState<'CONNECTED' | 'DISCONNECTED' | 'CONNECTING'>(initialSettings.baileysStatus || 'DISCONNECTED');
@@ -119,6 +152,8 @@ export default function AppSettingsView({ settings: initialSettings, onSaveSetti
   const handleSaveAll = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     
+    const firstBank = banks[0] || { bankName: '', bankNoRek: '', bankOwner: '' };
+    
     const newSettings: AppSettings = {
       logoUrl,
       logoInitials: logoInitials.toUpperCase().substring(0, 4),
@@ -130,10 +165,12 @@ export default function AppSettingsView({ settings: initialSettings, onSaveSetti
       baileysAutoReply,
       baileysWebhookUrl,
       baileysIsPaired,
-      bankOwner,
-      bankNoRek,
-      bankName,
-      kontakPhone
+      bankOwner: firstBank.bankOwner,
+      bankNoRek: firstBank.bankNoRek,
+      bankName: firstBank.bankName,
+      kontakPhone,
+      appColor,
+      banks
     };
 
     onSaveSettings(newSettings);
@@ -142,6 +179,65 @@ export default function AppSettingsView({ settings: initialSettings, onSaveSetti
 
   const handleClearLogs = () => {
     setLogs([`SYSTEM: Logs cleared. Status: ${baileysStatus}`]);
+  };
+
+  const handleAddOrUpdateBank = () => {
+    if (!inputBankName.trim() || !inputBankNoRek.trim() || !inputBankOwner.trim()) {
+      alert('Harap lengkapi semua data rekening bank!');
+      return;
+    }
+
+    if (editingBankId) {
+      setBanks(prev => prev.map(b => b.id === editingBankId ? { 
+        ...b, 
+        bankName: inputBankName.trim(), 
+        bankNoRek: inputBankNoRek.trim(), 
+        bankOwner: inputBankOwner.trim() 
+      } : b));
+      setEditingBankId(null);
+    } else {
+      const newBank = {
+        id: 'bank-' + Date.now(),
+        bankName: inputBankName.trim(),
+        bankNoRek: inputBankNoRek.trim(),
+        bankOwner: inputBankOwner.trim()
+      };
+      setBanks(prev => [...prev, newBank]);
+    }
+
+    setInputBankName('');
+    setInputBankNoRek('');
+    setInputBankOwner('');
+  };
+
+  const handleEditBankClick = (bank: BankAccount) => {
+    setEditingBankId(bank.id);
+    setInputBankName(bank.bankName);
+    setInputBankNoRek(bank.bankNoRek);
+    setInputBankOwner(bank.bankOwner);
+  };
+
+  const handleDeleteBankClick = (id: string) => {
+    if (banks.length === 1) {
+      alert('Minimal harus memiliki satu rekening bank aktif agar sistem konfirmasi tetap berjalan!');
+      return;
+    }
+    if (window.confirm('Apakah Anda yakin ingin menghapus rekening bank ini?')) {
+      setBanks(prev => prev.filter(b => b.id !== id));
+      if (editingBankId === id) {
+        setEditingBankId(null);
+        setInputBankName('');
+        setInputBankNoRek('');
+        setInputBankOwner('');
+      }
+    }
+  };
+
+  const handleCancelEditBank = () => {
+    setEditingBankId(null);
+    setInputBankName('');
+    setInputBankNoRek('');
+    setInputBankOwner('');
   };
 
   return (
@@ -256,6 +352,35 @@ export default function AppSettingsView({ settings: initialSettings, onSaveSetti
                   placeholder="Contoh: Villa Indah Harmoni"
                   className="w-full text-xs px-3.5 py-3 border border-gray-200 outline-none rounded-xl focus:border-blue-900 focus:ring-1 focus:ring-blue-900/10 bg-slate-50/50 text-gray-800 font-bold"
                 />
+              </div>
+
+              {/* Warna Tema Aplikasi */}
+              <div className="space-y-2">
+                <label className="block text-[10px] font-bold text-gray-550 uppercase tracking-widest">
+                  Pilihan Warna Tema Aplikasi *
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 border border-slate-100 p-3 rounded-2xl bg-slate-50/30">
+                  {COLOR_PRESETS.map((preset) => {
+                    const isSelected = appColor === preset.id;
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => setAppColor(preset.id)}
+                        className={`cursor-pointer flex items-center gap-2 px-3 py-2 rounded-xl border text-left transition-all ${
+                          isSelected 
+                            ? 'border-blue-900 bg-blue-50/50 shadow-xs ring-1 ring-blue-900/10'
+                            : 'border-slate-150 bg-white hover:bg-slate-50'
+                        }`}
+                      >
+                        <span className={`w-3.5 h-3.5 rounded-full ${preset.class} shrink-0 block border`} />
+                        <span className={`text-[11px] font-bold ${isSelected ? 'text-blue-900' : 'text-gray-700'}`}>
+                          {preset.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Kontak / Nomor WhatsApp */}
@@ -528,74 +653,153 @@ export default function AppSettingsView({ settings: initialSettings, onSaveSetti
 
           {/* TAB 3: REKENING BANK */}
           {activeSubTab === 'bank' && (
-            <div className="space-y-5 animate-fade-in">
-              <div className="border-b border-gray-100 pb-3 flex items-center gap-2">
-                <div className="p-2 bg-emerald-50 text-emerald-800 rounded-xl">
-                  <Landmark className="w-5 h-5 text-emerald-800" />
-                </div>
-                <div>
-                  <h2 className="text-sm font-black text-slate-900 uppercase tracking-tight">Informasi Rekening Pembayaran</h2>
-                  <p className="text-[10px] text-gray-400">Rincian rekening bank utama yang akan dicantumkan pada kuitansi & konfirmasi tagihan</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Nama Bank */}
-                <div className="space-y-1.5">
-                  <label htmlFor="set-bank-name" className="block text-[10px] font-bold text-gray-550 uppercase tracking-widest">
-                    Nama Bank Utama *
-                  </label>
-                  <input
-                    id="set-bank-name"
-                    type="text"
-                    required
-                    value={bankName}
-                    onChange={(e) => setBankName(e.target.value)}
-                    placeholder="Contoh: BCA / Mandiri / BRI / BNI"
-                    className="w-full text-xs px-3.5 py-3 border border-gray-200 outline-none rounded-xl focus:border-blue-900 focus:ring-1 focus:ring-blue-900/10 bg-slate-50/50 text-gray-800 font-bold"
-                  />
-                </div>
-
-                {/* Nomor Rekening */}
-                <div className="space-y-1.5">
-                  <label htmlFor="set-bank-norek" className="block text-[10px] font-bold text-gray-550 uppercase tracking-widest">
-                    Nomor Rekening Bank *
-                  </label>
-                  <input
-                    id="set-bank-norek"
-                    type="text"
-                    required
-                    value={bankNoRek}
-                    onChange={(e) => setBankNoRek(e.target.value)}
-                    placeholder="Contoh: 123-4567-890"
-                    className="w-full text-xs px-3.5 py-3 border border-gray-200 outline-none rounded-xl focus:border-blue-900 focus:ring-1 focus:ring-blue-900/10 bg-slate-50/50 text-gray-850 font-mono font-bold"
-                  />
+            <div className="space-y-6 animate-fade-in">
+              <div className="border-b border-gray-100 pb-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-emerald-50 text-emerald-800 rounded-xl">
+                    <Landmark className="w-5 h-5 text-emerald-800" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-black text-slate-900 uppercase tracking-tight">Daftar Rekening Pembayaran</h2>
+                    <p className="text-[10px] text-gray-400">Atur beberapa rekening bank untuk menerima metode pembayaran transfer dari pelanggan</p>
+                  </div>
                 </div>
               </div>
 
-              {/* Pemilik Rekening */}
-              <div className="space-y-1.5">
-                <label htmlFor="set-bank-owner" className="block text-[10px] font-bold text-gray-550 uppercase tracking-widest">
-                  Nama Lengkap Pemilik Rekening *
-                </label>
-                <input
-                  id="set-bank-owner"
-                  type="text"
-                  required
-                  value={bankOwner}
-                  onChange={(e) => setBankOwner(e.target.value)}
-                  placeholder="Contoh: CV Wisata Indah Sentosa / Nama Pemilik"
-                  className="w-full text-xs px-3.5 py-3 border border-gray-200 outline-none rounded-xl focus:border-blue-900 focus:ring-1 focus:ring-blue-900/10 bg-slate-50/50 text-gray-800 font-bold"
-                />
+              {/* Grid of registered bank accounts */}
+              <div className="space-y-2.5">
+                <span className="block text-[10px] font-bold text-gray-550 uppercase tracking-widest">
+                  Rekening Terdaftar ({banks.length})
+                </span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {banks.map((bank, index) => (
+                    <div 
+                      key={bank.id} 
+                      className={`p-4 rounded-2xl border transition-all relative flex flex-col justify-between overflow-hidden ${
+                        index === 0 
+                          ? 'bg-blue-50/40 border-blue-200 ring-1 ring-blue-900/5' 
+                          : 'bg-white border-slate-150 hover:border-slate-300'
+                      }`}
+                    >
+                      {index === 0 && (
+                        <div className="absolute top-0 right-0 bg-blue-900 text-amber-400 text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-bl-lg shadow-sm">
+                          Utama / Default
+                        </div>
+                      )}
+                      
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5">
+                          <Landmark className="w-3.5 h-3.5 text-blue-900" />
+                          <span className="text-xs font-black text-slate-800 uppercase">{bank.bankName}</span>
+                        </div>
+                        <p className="text-sm font-mono font-black text-blue-950 tracking-wider">
+                          {bank.bankNoRek}
+                        </p>
+                        <p className="text-[10px] text-gray-400 font-medium">
+                          a.n. <strong className="text-gray-700">{bank.bankOwner}</strong>
+                        </p>
+                      </div>
+
+                      <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-end gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleEditBankClick(bank)}
+                          className="cursor-pointer text-[10px] font-bold text-blue-905 bg-blue-50 hover:bg-blue-100/80 px-2.5 py-1.5 rounded-xl transition-all flex items-center gap-1"
+                        >
+                          <Edit3 className="w-3 h-3" />
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteBankClick(bank.id)}
+                          className="cursor-pointer text-[10px] font-bold text-red-650 bg-red-50 hover:bg-red-100/80 px-2.5 py-1.5 rounded-xl transition-all flex items-center gap-1"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          Hapus
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Form to Add / Edit Bank Account */}
+              <div className="border border-slate-150 p-4 rounded-2xl bg-slate-50/40 space-y-4">
+                <span className="block text-[10px] font-black text-gray-550 uppercase tracking-widest">
+                  {editingBankId ? '📝 Edit Detail Rekening' : '➕ Tambah Rekening Pembayaran Baru'}
+                </span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  {/* Nama Bank */}
+                  <div className="space-y-1">
+                    <label className="block text-[9px] font-bold text-gray-550 uppercase tracking-widest">
+                      Nama Bank *
+                    </label>
+                    <input
+                      type="text"
+                      value={inputBankName}
+                      onChange={(e) => setInputBankName(e.target.value)}
+                      placeholder="Contoh: BCA, BNI, Mandiri, BRI"
+                      className="w-full text-xs px-3 py-2 border border-gray-200 outline-none rounded-xl focus:border-blue-900 bg-white text-gray-800 font-bold"
+                    />
+                  </div>
+
+                  {/* Nomor Rekening */}
+                  <div className="space-y-1">
+                    <label className="block text-[9px] font-bold text-gray-550 uppercase tracking-widest">
+                      Nomor Rekening *
+                    </label>
+                    <input
+                      type="text"
+                      value={inputBankNoRek}
+                      onChange={(e) => setInputBankNoRek(e.target.value)}
+                      placeholder="Contoh: 123-4567-890"
+                      className="w-full text-xs px-3 py-2 border border-gray-200 outline-none rounded-xl focus:border-blue-900 bg-white text-gray-850 font-mono font-bold"
+                    />
+                  </div>
+                </div>
+
+                {/* Pemilik Rekening */}
+                <div className="space-y-1">
+                  <label className="block text-[9px] font-bold text-gray-550 uppercase tracking-widest">
+                    Nama Lengkap Pemilik Rekening *
+                  </label>
+                  <input
+                    type="text"
+                    value={inputBankOwner}
+                    onChange={(e) => setInputBankOwner(e.target.value)}
+                    placeholder="Contoh: CV Wisata Indah Sentosa / Nama Pemilik"
+                    className="w-full text-xs px-3 py-2.5 border border-gray-200 outline-none rounded-xl focus:border-blue-900 bg-white text-gray-805 font-bold"
+                  />
+                </div>
+
+                <div className="flex items-center gap-1.5 justify-end">
+                  {editingBankId && (
+                    <button
+                      type="button"
+                      onClick={handleCancelEditBank}
+                      className="cursor-pointer text-xs font-black text-slate-500 bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded-xl transition-all"
+                    >
+                      Batal
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleAddOrUpdateBank}
+                    className="cursor-pointer text-xs font-black text-white bg-blue-900 hover:bg-blue-850 px-4 py-2 rounded-xl flex items-center gap-1.5 transition-all shadow-md shadow-blue-900/5"
+                  >
+                    {editingBankId ? 'Simpan Perubahan' : 'Masukkan ke Daftar'}
+                  </button>
+                </div>
               </div>
 
               {/* Informational Hint Card */}
-              <div className="bg-emerald-50/50 border border-emerald-150 rounded-2xl p-4 flex gap-3 text-emerald-950">
+              <div className="bg-emerald-50/30 border border-emerald-150 rounded-2xl p-4 flex gap-3 text-emerald-950">
                 <Info className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
                 <div className="space-y-0.5">
                   <h4 className="text-xs font-bold leading-none">Otomasi billing terpadu</h4>
                   <p className="text-[10px] leading-relaxed text-emerald-800">
-                    Nilai rekening di atas akan langsung dipasang pada modul pembayaran di menu <strong>Konfirmasi Tagihan</strong> serta tersemat di seluruh pesan konfirmasi WhatsApp pelanggan demi memudahkan proses verifikasi transfer dana atau deposit pemesanan (DP).
+                    Rekening terdaftar pertama akan dijadikan <strong>Rekening Utama</strong> kuitansi & pesan konfirmasi, namun kasir bebas memilih rekening manapun dari daftar di atas sebagai metode bayar saat menginput registrasi pemesanan kamar baru.
                   </p>
                 </div>
               </div>

@@ -10,29 +10,64 @@ export const ROOM_TYPES: RoomType[] = [
     id: 'dahlia',
     name: 'Dahlia Suite',
     ratePerNight: 750000,
+    rateWeekday: 700000,
+    rateWeekend: 850000,
     capacity: 2,
     description: 'Suite mewah dengan pemandangan taman, kasur king-size, dan bathtub.',
+    facilities: [
+      { name: 'WiFi Gratis', icon: 'Wifi' },
+      { name: 'Smart TV', icon: 'Tv' },
+      { name: 'Air Conditioning (AC)', icon: 'Wind' },
+      { name: 'Bathtub & Air Hangat', icon: 'Bath' }
+    ]
   },
   {
     id: 'melati',
     name: 'Melati Deluxe',
     ratePerNight: 1200000,
+    rateWeekday: 1100000,
+    rateWeekend: 1350000,
     capacity: 4,
     description: 'Kamar deluxe luas untuk keluarga kecil, dilengkapi balkon privat.',
+    facilities: [
+      { name: 'WiFi Gratis', icon: 'Wifi' },
+      { name: 'Smart TV 50"', icon: 'Tv' },
+      { name: 'Air Conditioning (AC)', icon: 'Wind' },
+      { name: 'Mesin Kopi / Teh', icon: 'Coffee' },
+      { name: 'Balkon Privat', icon: 'Sun' }
+    ]
   },
   {
     id: 'cempaka',
     name: 'Cempaka Family Villa',
     ratePerNight: 1850000,
+    rateWeekday: 1750000,
+    rateWeekend: 2100000,
     capacity: 6,
     description: 'Villa keluarga 2 lantai dengan dapur lengkap dan ruang makan semi-outdoor.',
+    facilities: [
+      { name: 'WiFi Gratis', icon: 'Wifi' },
+      { name: 'Smart TV', icon: 'Tv' },
+      { name: 'Air Conditioning (AC) di Setiap Kamar', icon: 'Wind' },
+      { name: 'Dapur Lengkap & Microwave', icon: 'Utensils' },
+      { name: 'Ruang Makan Semi-Outdoor', icon: 'Home' }
+    ]
   },
   {
     id: 'kenanga',
     name: 'Kenanga Executive Pool',
     ratePerNight: 2900000,
+    rateWeekday: 2700000,
+    rateWeekend: 3200000,
     capacity: 8,
     description: 'Villa premium dengan kolam renang pribadi, gazebo, dan layanan butler.',
+    facilities: [
+      { name: 'Super Fast WiFi', icon: 'Wifi' },
+      { name: 'Smart TV 4K', icon: 'Tv' },
+      { name: 'Private Pool / Kolam Renang', icon: 'Waves' },
+      { name: 'Layanan Butler 24 Jam', icon: 'Key' },
+      { name: 'Brankas & Keamanan', icon: 'Shield' }
+    ]
   }
 ];
 
