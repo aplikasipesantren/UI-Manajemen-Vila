@@ -163,10 +163,10 @@ export default function CustomerManagement({
   };
 
   return (
-    <div id="customer-mgmt-view" className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div id="customer-mgmt-view" className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
       
       {/* 1. Left side list: search & select pelanggan */}
-      <div className="lg:col-span-1 bg-white rounded-3xl border border-gray-150 p-5 flex flex-col h-[650px] shadow-sm">
+      <div className="md:col-span-1 bg-white rounded-3xl border border-gray-150 p-5 flex flex-col h-[650px] shadow-sm">
         
         <div className="flex items-center justify-between gap-3 mb-4">
           <div>
@@ -265,7 +265,7 @@ export default function CustomerManagement({
       </div>
 
       {/* 2. Middle & Right sides combined: Detail profiling and statistics */}
-      <div className="lg:col-span-2 space-y-6">
+      <div className="md:col-span-2 space-y-6">
         
         {currentSelectedCustomer ? (
           <div className="bg-white rounded-3xl border border-gray-150 p-6 shadow-sm min-h-[480px] flex flex-col justify-between">

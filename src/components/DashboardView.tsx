@@ -286,7 +286,7 @@ export default function DashboardView({ bookings, roomTypes, onNavigateToTab }: 
       </div>
 
       {/* KPI Stats widgets row container */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         
         {/* KPI 1: Realisasi Keuangan */}
         <div className="bg-white rounded-2xl border border-gray-150 p-5 flex flex-col justify-between shadow-xs hover:shadow-md transition-shadow relative">
@@ -375,9 +375,9 @@ export default function DashboardView({ bookings, roomTypes, onNavigateToTab }: 
       </div>
 
       {/* CHARTS CONTAINER GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
              {/* COLUMN 1 & 2: Interactive SVG Chart of Financial trends */}
-        <div className="lg:col-span-2 bg-slate-900 text-white p-5 rounded-3xl border border-slate-950 flex flex-col justify-between min-h-[340px] shadow-sm">
+        <div className="md:col-span-2 bg-slate-900 text-white p-5 rounded-3xl border border-slate-950 flex flex-col justify-between min-h-[340px] shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-3 gap-3">
             <div>
               <h3 className="text-xs font-black uppercase text-amber-400 tracking-wider">Visualisasi Grafik Keuangan</h3>

@@ -54,7 +54,7 @@ export default function StatsDashboard({ bookings, roomTypes }: StatsDashboardPr
     : 0;
 
   return (
-    <div id="widget-summary" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div id="widget-summary" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
       {/* 1. Total Rooms Sold & Occupancy */}
       <div className="bg-white p-5 rounded-2xl shadow-xs border border-gray-100 flex items-center justify-between group hover:shadow-md transition-shadow">
         <div className="space-y-1">

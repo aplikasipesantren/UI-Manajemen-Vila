@@ -613,9 +613,9 @@ export default function BrochureGenerator({ roomTypes }: BrochureGeneratorProps)
       </div>
 
       {activeSubTab === 'text' ? (
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 animate-fade-in">
           {/* Parameters Selector Config Sheet (Left) */}
-          <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-5 space-y-5 shadow-xs flex flex-col justify-between">
+          <div className="md:col-span-2 bg-white rounded-2xl border border-gray-100 p-5 space-y-5 shadow-xs flex flex-col justify-between">
             <div className="space-y-4">
               <div className="flex items-center gap-2 pb-3 border-b border-gray-105">
                 <div className="p-2 bg-blue-50 text-blue-900 rounded-lg">
@@ -730,7 +730,7 @@ export default function BrochureGenerator({ roomTypes }: BrochureGeneratorProps)
           </div>
 
           {/* Draft Result View Panel (Right) */}
-          <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between overflow-hidden">
+          <div className="md:col-span-3 bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between overflow-hidden">
             {/* Result Header */}
             <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
               <span className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
@@ -811,9 +811,9 @@ export default function BrochureGenerator({ roomTypes }: BrochureGeneratorProps)
         </div>
       ) : (
         /* ================= IMAGE FLYER BROSUR GENERATOR WORKSPACE ================= */
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
           {/* Controls Sheet Left Side */}
-          <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-5 space-y-4 shadow-xs flex flex-col justify-between">
+          <div className="md:col-span-2 bg-white rounded-2xl border border-gray-100 p-5 space-y-4 shadow-xs flex flex-col justify-between">
             <div className="space-y-4 overflow-y-auto max-h-[500px] pr-1 adaptive-scrollbar">
               <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
                 <div className="p-2 bg-amber-50 text-amber-700 rounded-lg">
@@ -993,7 +993,7 @@ export default function BrochureGenerator({ roomTypes }: BrochureGeneratorProps)
           </div>
 
           {/* Majestic Real-time Visual Brochure Preview (Right Side) */}
-          <div className="lg:col-span-3 flex flex-col justify-center items-center p-4 bg-slate-100 rounded-2xl border border-gray-200 overflow-hidden relative">
+          <div className="md:col-span-3 flex flex-col justify-center items-center p-4 bg-slate-100 rounded-2xl border border-gray-200 overflow-hidden relative">
             <span className="absolute top-2 left-4 text-[9px] font-black text-gray-400 uppercase tracking-widest">
               Live Mockup Preview (Skala HP)
             </span>

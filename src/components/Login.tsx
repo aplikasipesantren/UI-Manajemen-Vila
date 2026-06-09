@@ -50,7 +50,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   };
 
   return (
-    <div id="login-module-container" className="min-h-screen bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden font-sans">
+    <div id="login-module-container" className="min-h-screen bg-slate-950 flex items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-hidden font-sans">
       
       {/* Aesthetic glowing background patterns */}
       <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-blue-900/10 blur-[150px] pointer-events-none"></div>
@@ -59,30 +59,87 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       {/* Decorative refined thin gird lines */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-30 pointer-events-none"></div>
 
-      <div className="w-full max-w-md relative z-10">
+      <div className="w-full max-w-5xl relative z-10 grid grid-cols-1 md:grid-cols-12 gap-8 items-stretch bg-slate-900/50 backdrop-blur-md rounded-3xl border border-slate-800 p-6 sm:p-8 md:p-10 shadow-2xl">
         
-        {/* Brand visual header inside elegant fade-in wrapper */}
-        <div className="text-center mb-8 space-y-3">
-          <div className="inline-flex items-center justify-center p-3.5 bg-blue-900 text-yellow-400 rounded-2xl shadow-xl shadow-blue-950/50 border border-blue-950 font-serif font-black text-2xl tracking-wide">
-            VIH
+        {/* LEFT COLUMN: Luxurious Brand Display & System Modules (6/12 columns on large screen) */}
+        <div className="md:col-span-6 flex flex-col justify-between space-y-8 pr-0 md:pr-6 border-b md:border-b-0 md:border-r border-slate-850 pb-8 md:pb-0">
+          
+          <div className="space-y-4">
+            {/* Logo Badge */}
+            <div className="inline-flex items-center justify-center p-3 px-4 bg-blue-950 text-yellow-400 rounded-2xl shadow-xl border border-blue-900/50 font-serif font-black text-xl tracking-wider select-none">
+              VIH
+            </div>
+            
+            <div className="space-y-1">
+              <h1 className="text-3xl font-black text-white tracking-widest uppercase sm:text-4xl">
+                Naira Villa
+              </h1>
+              <span className="text-xs text-yellow-500 font-extrabold uppercase tracking-widest block font-mono">
+                RESORT & PRIVATE VILLAS
+              </span>
+            </div>
+
+            <p className="text-sm text-slate-400 leading-relaxed max-w-md">
+              Sistem backend ERP dan pencatatan kasir terintegrasi untuk menyederhanakan siklus check-in, check-out, sewa unit kamar, serta pelaporan kas digital harian vila Anda.
+            </p>
           </div>
-          <div>
-            <h1 className="text-2xl font-black text-white tracking-widest uppercase">INDAH HARMONI</h1>
-            <span className="text-[10px] text-yellow-500 font-bold uppercase tracking-widest block mt-0.5">RESORT & PRIVATE VILLAS</span>
+
+          {/* List of Key Fully-Functional System Modules */}
+          <div className="space-y-4 pt-1">
+            <span className="block text-[10px] font-black text-slate-500 tracking-widest uppercase">
+              MODUL OPERASIONAL AKTIF
+            </span>
+
+            <ul className="space-y-3.5">
+              <li className="flex gap-3">
+                <span className="p-1.5 h-8 w-8 bg-blue-900/40 text-yellow-405 border border-blue-800/40 rounded-lg flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-4 h-4 text-yellow-500" />
+                </span>
+                <div>
+                  <span className="block text-xs font-bold text-slate-100">POS Kasir Cepat (Baru!)</span>
+                  <span className="block text-[11px] text-yellow-400/95 leading-normal">Pencatatan reservasi tamu, input addons instan, & mesin penghitung uang kembalian.</span>
+                </div>
+              </li>
+
+              <li className="flex gap-3">
+                <span className="p-1.5 h-8 w-8 bg-blue-900/40 text-yellow-450 border border-blue-800/40 rounded-lg flex items-center justify-center shrink-0">
+                  <Building className="w-4 h-4 text-blue-400" />
+                </span>
+                <div>
+                  <span className="block text-xs font-bold text-slate-100">Kalender & Reservasi</span>
+                  <span className="block text-[11px] text-yellow-400/95 leading-normal">Manajemen ketersediaan visual dinamis anti double-booking dengan matrix warna.</span>
+                </div>
+              </li>
+
+              <li className="flex gap-3">
+                <span className="p-1.5 h-8 w-8 bg-blue-900/40 text-yellow-450 border border-blue-800/40 rounded-lg flex items-center justify-center shrink-0">
+                  <Sparkles className="w-4 h-4 text-emerald-450" />
+                </span>
+                <div>
+                  <span className="block text-xs font-bold text-slate-100">Promosi Brosur AI</span>
+                  <span className="block text-[11px] text-yellow-400/95 leading-normal">Melakukan generator tagline marketing instan otomatis dengan kecerdasan buatan.</span>
+                </div>
+              </li>
+            </ul>
           </div>
-          <p className="text-xs text-slate-400 max-w-xs mx-auto">
-            Sistem Manajemen Internal & Pembuat Brosur Pemasaran Digital Canggih
-          </p>
+
+          {/* Safe lock legal badge */}
+          <div className="flex items-center gap-2 text-[10px] text-slate-500 font-semibold uppercase tracking-wider pt-2 select-none">
+            <ShieldCheck className="w-4 h-4 text-emerald-500" />
+            <span>Sistem Pencatatan Enkripsi Lokal Pasif</span>
+          </div>
+
         </div>
 
-        {/* Credentials Form Box */}
-        <div className="bg-slate-900/80 backdrop-blur-md rounded-3xl border border-slate-800 shadow-2xl p-8 space-y-6">
-          <div className="space-y-1.5 border-b border-slate-800/80 pb-4">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-yellow-500" />
+        {/* RIGHT COLUMN: Formal Credentials Form (6/12 columns on large screen) */}
+        <div className="md:col-span-6 flex flex-col justify-center space-y-6 md:pl-6">
+          
+          <div className="space-y-1.5">
+            <h2 className="text-xl font-black text-white flex items-center gap-2">
+              <Lock className="w-5 h-5 text-yellow-500" />
               Autentikasi Admin
             </h2>
-            <p className="text-xs text-slate-405">Masukkan kredensial keamanan Anda untuk mengelola akomodasi.</p>
+            <p className="text-xs text-slate-400">Masukkan kredensial keamanan Anda untuk mengelola akomodasi.</p>
           </div>
 
           {error && (
@@ -95,7 +152,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Username Input */}
             <div className="space-y-1.5">
-              <label htmlFor="login-username" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <label htmlFor="login-username" className="block text-[10px] font-black text-slate-400 uppercase tracking-wider">
                 Username
               </label>
               <div className="relative">
@@ -117,7 +174,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             {/* Password Input */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label htmlFor="login-password" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <label htmlFor="login-password" className="block text-[10px] font-black text-slate-400 uppercase tracking-wider">
                   Password
                 </label>
               </div>
@@ -137,7 +194,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300 pointer-events-auto"
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300 pointer-events-auto cursor-pointer"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -148,8 +205,8 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full py-3.5 mt-2 bg-yellow-600 hover:bg-yellow-500 text-slate-950 font-extrabold text-xs tracking-widest uppercase rounded-xl shadow-lg shadow-yellow-600/10 cursor-pointer flex items-center justify-center gap-2 transition-all outline-none ${
-                isLoading ? 'opacity-80 cursor-wait' : ''
+              className={`w-full py-3.5 mt-2 bg-gradient-to-r from-yellow-600 to-amber-500 hover:from-yellow-500 hover:to-amber-400 text-slate-950 font-extrabold text-xs tracking-widest uppercase rounded-xl shadow-lg shadow-yellow-600/10 cursor-pointer flex items-center justify-center gap-2 transition-all outline-none ${
+                isLoading ? 'opacity-80 cursor-wait' : 'active:scale-[0.98]'
               }`}
             >
               {isLoading ? (
@@ -174,16 +231,11 @@ export default function Login({ onLoginSuccess }: LoginProps) {
               onClick={handleUseDemoCredentials}
               className="cursor-pointer text-[11px] font-bold text-yellow-500/90 hover:text-yellow-400 bg-yellow-500/5 hover:bg-yellow-500/10 border border-yellow-500/20 hover:border-yellow-500/30 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all outline-none"
             >
-              <Sparkles className="w-3 h-3 text-yellow-500" />
+              <Sparkles className="w-3.5 h-3.5 text-yellow-500 animate-pulse" />
               Gunakan Akun Demo Admin (`admin` / `admin123`)
             </button>
           </div>
-        </div>
 
-        {/* Safe lock legal badge */}
-        <div className="mt-6 flex items-center justify-center gap-1.5 text-[10px] text-slate-500 font-semibold uppercase tracking-wider">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Sistem Pencatatan Enkripsi Lokal Pasif</span>
         </div>
 
       </div>

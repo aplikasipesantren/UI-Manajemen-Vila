@@ -183,10 +183,10 @@ export default function RoomManagement({
   }, [currentSelectedRoom, bookings]);
 
   return (
-    <div id="room-mgmt-panel" className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div id="room-mgmt-panel" className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
       
       {/* 1. SEBELAH KIRI: List & Search Kamar/Villa */}
-      <div className="lg:col-span-1 bg-white rounded-3xl border border-gray-150 p-5 flex flex-col h-[650px] shadow-sm">
+      <div className="md:col-span-1 bg-white rounded-3xl border border-gray-150 p-5 flex flex-col h-[650px] shadow-sm">
         
         <div className="flex items-center justify-between gap-3 mb-4">
           <div>
@@ -278,7 +278,7 @@ export default function RoomManagement({
       </div>
 
       {/* 2. SEBELAH TENAN & KANAN: Detail & Statistik Ringkasan */}
-      <div className="lg:col-span-2 space-y-6">
+      <div className="md:col-span-2 space-y-6">
         
         {/* Statistics widget grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

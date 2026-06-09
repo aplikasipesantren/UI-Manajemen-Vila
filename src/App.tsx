@@ -19,7 +19,7 @@ import RoomManagement from './components/RoomManagement';
 import DashboardView from './components/DashboardView';
 import Login from './components/Login';
 import POSKasirView from './components/POSKasirView';
-import { ShieldAlert, RefreshCw, Calendar as CalendarIcon, User, Layers, Clock } from 'lucide-react';
+import { ShieldAlert, RefreshCw, Calendar as CalendarIcon, User, Layers, Clock, LogOut } from 'lucide-react';
 
 const THEME_COLORS: Record<string, Record<string, string>> = {
   blue: {
@@ -137,6 +137,10 @@ export default function App() {
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   const [formEditValues, setFormEditValues] = useState<Partial<Booking> | null>(null);
   const [currentDateTime, setCurrentDateTime] = useState('');
+  
+  // Custom dialog state of modal authentication
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
   // Pelanggan list manually loaded & synchronized to localStorage
   const [customers, setCustomers] = useState<Customer[]>(() => {
@@ -293,14 +297,17 @@ export default function App() {
 
   // 3. Action: Delete/Cancel Reservation from Kuitansi view OR detail panel
   const handleResetData = () => {
-    if (window.confirm('Apakah Anda yakin ingin mengatur ulang database ke data demo pabrik? Semua pesanan baru Anda akan terhapus.')) {
-      saveBookingsList(INITIAL_BOOKINGS);
-      setRoomTypes(ROOM_TYPES);
-      localStorage.setItem('villa_room_types', JSON.stringify(ROOM_TYPES));
-      setSelectedBookingId(INITIAL_BOOKINGS[0].id);
-      setFormEditValues(null);
-      setActiveTab('kalender');
-    }
+    setIsResetModalOpen(true);
+  };
+
+  const confirmResetData = () => {
+    saveBookingsList(INITIAL_BOOKINGS);
+    setRoomTypes(ROOM_TYPES);
+    localStorage.setItem('villa_room_types', JSON.stringify(ROOM_TYPES));
+    setSelectedBookingId(INITIAL_BOOKINGS[0].id);
+    setFormEditValues(null);
+    setActiveTab('kalender');
+    setIsResetModalOpen(false);
   };
 
   // 4. Action: Clique an occupied Cell on calendar matrix
@@ -341,10 +348,13 @@ export default function App() {
   };
 
   const handleLogout = () => {
-    if (window.confirm('Apakah Anda yakin ingin keluar dari sistem?')) {
-      setAdminUser(null);
-      localStorage.removeItem('villa_admin_user');
-    }
+    setIsLogoutModalOpen(true);
+  };
+
+  const confirmLogout = () => {
+    setAdminUser(null);
+    localStorage.removeItem('villa_admin_user');
+    setIsLogoutModalOpen(false);
   };
 
   if (!adminUser) {
@@ -359,7 +369,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row antialiased text-gray-800">
+    <div className="min-h-screen md:h-screen md:max-h-screen md:overflow-hidden bg-slate-50 flex flex-col md:flex-row antialiased text-gray-800">
       
       {/* 1. Left Sidebar menu (Menu: Kalender, Booking Baru, Kuitansi + Logo & Branding) */}
       <Sidebar
@@ -380,7 +390,7 @@ export default function App() {
       />
 
       {/* 2. Main Content Layout panel */}
-      <main className="flex-1 flex flex-col min-h-screen p-4 md:p-8 space-y-6 overflow-y-auto">
+      <main className="flex-1 flex flex-col p-4 md:p-8 space-y-6 overflow-y-auto min-h-0">
         
         {/* Main Work Header */}
         <header id="main-container-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200/60 pb-5">
@@ -557,6 +567,83 @@ export default function App() {
         </footer>
 
       </main>
+
+      {/* Custom Logout Confirmation Modal */}
+      {isLogoutModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in" id="logout-confirm-modal">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-gray-150 animate-scale-up space-y-4">
+            <div className="flex items-center gap-3 text-red-600 border-b border-gray-100 pb-3">
+              <div className="p-2 bg-red-50 rounded-xl">
+                <LogOut className="w-5 h-5 animate-pulse" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-gray-900 font-sans">Keluar Sistem</h3>
+                <p className="text-[10px] text-gray-500 font-sans">Konfirmasi Keluar Sesi</p>
+              </div>
+            </div>
+            
+            <p className="text-xs text-gray-600 leading-relaxed font-sans">
+              Apakah Anda yakin ingin keluar dari sistem manajemen <strong>{settings.namaLembaga}</strong>? Anda harus melakukan login kembali untuk mengakses panel kendali.
+            </p>
+            
+            <div className="flex gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsLogoutModalOpen(false)}
+                className="cursor-pointer flex-1 py-2 text-xs font-bold text-gray-500 bg-slate-100 hover:bg-slate-200 hover:text-gray-900 rounded-xl transition-colors outline-none font-sans"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={confirmLogout}
+                className="cursor-pointer flex-1 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-xs shadow-red-200 transition-colors outline-none font-sans"
+              >
+                Ya, Keluar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Reset Demo Data Confirmation Modal */}
+      {isResetModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in" id="reset-confirm-modal">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-gray-150 animate-scale-up space-y-4">
+            <div className="flex items-center gap-3 text-amber-600 border-b border-gray-100 pb-3">
+              <div className="p-2 bg-amber-50 rounded-xl">
+                <RefreshCw className="w-5 h-5 animate-spin-slow" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-gray-900 font-sans">Reset Demo Data</h3>
+                <p className="text-[10px] text-gray-500 font-sans">Kembalikan ke Setelan Pabrik</p>
+              </div>
+            </div>
+            
+            <p className="text-xs text-gray-600 leading-relaxed font-sans">
+              Apakah Anda yakin ingin mengatur ulang database ke data demo asli pabrik? Semua pesanan baru Anda akan terhapus secara permanen.
+            </p>
+            
+            <div className="flex gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsResetModalOpen(false)}
+                className="cursor-pointer flex-1 py-2 text-xs font-bold text-gray-500 bg-slate-100 hover:bg-slate-200 hover:text-gray-900 rounded-xl transition-colors outline-none font-sans"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={confirmResetData}
+                className="cursor-pointer flex-1 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-xs shadow-amber-200 transition-colors outline-none font-sans"
+              >
+                Ya, Reset Data
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

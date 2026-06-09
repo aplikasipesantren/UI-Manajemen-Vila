@@ -180,9 +180,9 @@ export default function BillingConfirmation({
       </div>
 
       {simulatedView === 'admin' ? (
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 animate-fade-in">
           {/* Form and configs left side */}
-          <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-5 space-y-4 shadow-xs">
+          <div className="md:col-span-2 bg-white rounded-2xl border border-gray-100 p-5 space-y-4 shadow-xs">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-gray-100 pb-2">
               Pengaturan Mutasi & Informasi Bank
             </h3>
@@ -328,7 +328,7 @@ export default function BillingConfirmation({
           </div>
 
           {/* Text message draft container right side */}
-          <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-100 p-5 space-y-4 shadow-xs flex flex-col justify-between">
+          <div className="md:col-span-3 bg-white rounded-2xl border border-gray-100 p-5 space-y-4 shadow-xs flex flex-col justify-between">
             <h3 className="text-xs font-bold text-gray-550 uppercase tracking-wider border-b border-gray-100 pb-2">
               Draf Teks Notifikasi Tagihan (Saluran WhatsApp)
             </h3>

@@ -333,10 +333,10 @@ export default function POSKasirView({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start animate-fade-in">
       
       {/* LEFT COLUMN: Checkout Items & Customer Lookup (8 columns) */}
-      <div className="lg:col-span-7 xl:col-span-8 space-y-6">
+      <div className="md:col-span-7 lg:col-span-7 xl:col-span-8 space-y-6">
         
         {/* Banner Notification Toast */}
         {successToast && (
@@ -720,7 +720,7 @@ export default function POSKasirView({
       </div>
 
       {/* RIGHT COLUMN: CASHIER REGISTER CART (4 columns) */}
-      <div className="lg:col-span-5 xl:col-span-4 bg-white rounded-2xl border border-gray-150 shadow-md p-5 space-y-5 flex flex-col relative overflow-hidden">
+      <div className="md:col-span-5 lg:col-span-5 xl:col-span-4 bg-white rounded-2xl border border-gray-150 shadow-md p-5 space-y-5 flex flex-col relative overflow-hidden">
         
         {/* Visual receipt layout header */}
         <div className="border-b border-dashed border-gray-200 pb-4 space-y-1">

@@ -197,7 +197,7 @@ export default function Sidebar({
       </div>
 
       {/* 2. Interactive Menu Tabs */}
-      <nav className={`flex-1 p-3 space-y-2`}>
+      <nav className="flex-1 p-3 space-y-2 overflow-y-auto adaptive-scrollbar">
         {!isMinimized ? (
           <span className="block text-[10px] text-blue-200/50 font-bold tracking-widest uppercase px-3.5 mb-2.5 animate-fade-in">
             MENU UTAMA
